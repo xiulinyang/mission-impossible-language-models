@@ -11,8 +11,8 @@ inherit:
 run_id: babylm_reverse_partial_10M_randinit_seed41
 
 # Weights & Biases
-wandb: kallini
-group: babylm-perturbation-experiments
+wandb: xiulin-yang-compling
+group: xiulin-yang
 
 # Artifacts & Caching
 artifacts:

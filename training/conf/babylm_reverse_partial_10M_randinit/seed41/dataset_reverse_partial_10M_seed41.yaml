@@ -2,7 +2,7 @@
 #   Configuration for altered babylm-dataset
 ---
 dataset:
-    id: /nlp/scr/kallini/llms-in-llms/training/babylm_dataset.py
+    id: /local/xiulyang/mission-impossible-language-models/training/babylm_dataset.py
     name: babylm_reverse_partial_10M_seed41
     validation_ratio: null
 
