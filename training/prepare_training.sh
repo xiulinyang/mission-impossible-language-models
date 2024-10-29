@@ -2,7 +2,7 @@
 # prepare_training.sh
 # author: Julie Kallini
 
-readonly MISTRAL_PATH=/nlp/scr/kallini/mistral
+readonly MISTRAL_PATH=/local/xiulyang/mission-impossible-language-models/mistral
 
 echo "
 -------------------------------------------------------------------------------
@@ -19,11 +19,11 @@ echo "Mistral path: $MISTRAL_PATH"
 
 if [ -z "$NO_POS_ENCODINGS" ]
 then
-    NPS=""
-    NPSunderscore=""
-else
-    NPS="-no-positional-encodings"
-    NPSunderscore="_no_positional_encodings"
+	    NPS=""
+	        NPSunderscore=""
+	else
+		    NPS="-no-positional-encodings"
+		        NPSunderscore="_no_positional_encodings"
 fi
 
 # Generate yaml files for mistral training

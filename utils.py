@@ -30,9 +30,9 @@ GENRES = {
     "switchboard": "Switchboard Dialog Act Corpus",
     "wikipedia": "Wikipedia"
 }
-CHECKPOINT_WRITE_PATH = "/nlp/scr3/nlp/llms-in-llms/babylm_models"
-CHECKPOINT_READ_PATH = "/nlp/scr3/nlp/llms-in-llms/babylm_models"
-BABYLM_DATA_PATH = "/nlp/scr3/nlp/llms-in-llms/babylm_data"
+CHECKPOINT_WRITE_PATH = "/local/xiulyang/babylm_models"
+CHECKPOINT_READ_PATH = "/local/xiulyang/babylm_models"
+BABYLM_DATA_PATH = "/local/xiulyang/mission-impossible-language-models/data/babylm/"
 MARKER_HOP_SING = "🅂"
 MARKER_HOP_PLUR = "🄿"
 MARKER_REV = "🅁"

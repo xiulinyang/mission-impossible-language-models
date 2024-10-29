@@ -14,7 +14,7 @@ import stanza
 import json
 
 
-test_all_files = sorted(glob.glob("babylm_data/babylm_*/*"))
+test_all_files = sorted(glob.glob("babylm/train_10M/*"))
 test_original_files = [f for f in test_all_files if ".json" not in f]
 test_json_files = [f for f in test_all_files if "_parsed.json" in f]
 test_cases = list(zip(test_original_files, test_json_files))
@@ -83,7 +83,7 @@ if __name__ == "__main__":
                                package="default_accurate",
                                use_gpu=True)
 
-    BATCH_SIZE = 5000
+    BATCH_SIZE = 2
 
     # Iterate over BabyLM files
     for file in args.path:
@@ -94,16 +94,21 @@ if __name__ == "__main__":
         # Strip lines and join text
         print("Concatenating lines...")
         lines = [l.strip() for l in lines]
+            
         line_batches = [lines[i:i + BATCH_SIZE]
                         for i in range(0, len(lines), BATCH_SIZE)]
-        text_batches = [" ".join(l) for l in line_batches]
-
+        text_batches = [" ".join(" ".join(l).split()[:480]) for l in line_batches]
+        
         # Iterate over lines in file and track annotations
         line_annotations = []
         print("Segmenting and parsing text batches...")
         for text in tqdm.tqdm(text_batches):
             # Tokenize text with stanza
-            doc = nlp1(text)
+            try:
+                doc = nlp1(text)
+            except:
+                print(text)
+                continue
 
             # Iterate over sents in the line and track annotations
             sent_annotations = []
