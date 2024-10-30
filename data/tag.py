@@ -65,7 +65,8 @@ if __name__ == "__main__":
                         nargs='+', help="Path to file(s)")
     parser.add_argument('-p', '--parse', action='store_true',
                         help="Include constituency parse")
-
+    
+    parser.add_argument('-b', '--batch_size', type=int)
     # Get args
     args = parser.parse_args()
 
@@ -83,7 +84,7 @@ if __name__ == "__main__":
                                package="default_accurate",
                                use_gpu=True)
 
-    BATCH_SIZE = 2
+    BATCH_SIZE = args.batch_size
 
     # Iterate over BabyLM files
     for file in args.path:
@@ -97,7 +98,7 @@ if __name__ == "__main__":
             
         line_batches = [lines[i:i + BATCH_SIZE]
                         for i in range(0, len(lines), BATCH_SIZE)]
-        text_batches = [" ".join(" ".join(l).split()[:480]) for l in line_batches]
+        text_batches = [" ".join(" ".join(l).split()[:512]) for l in line_batches]
         
         # Iterate over lines in file and track annotations
         line_annotations = []

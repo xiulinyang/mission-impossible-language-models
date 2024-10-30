@@ -13,7 +13,7 @@ logger = datasets.logging.get_logger(__name__)
 _DESCRIPTION = """\
     Pre-tokenized BabyLM HuggingFace dataset for verb perturbations.
 """
-_PERTURBED_DATA_PATH = "/local/xiulyang/mission-impossible-language-models/data/baby_lm/babylm_data_perturbed"
+_PERTURBED_DATA_PATH = "/local/xiulyang/mission-impossible-language-models/data/babylm/babylm_data_perturbed"
 _PERTURBATIONS = ["hop_control", "hop_tokens4", "hop_words4",
                   "reverse_control", "reverse_partial", "reverse_full",
                   "shuffle_control", "shuffle_nondeterministic",
@@ -115,6 +115,7 @@ class BabyLMCorpus(datasets.GeneratorBasedBuilder):
         """This function returns the BabyLM text in the discretized, tokenized form."""
 
         logger.info("Generating examples from = %s", data_dir)
+        print(data_dir)
         infiles = sorted(glob.glob(os.path.join(data_dir, "*")))
 
         # Extend sentences
