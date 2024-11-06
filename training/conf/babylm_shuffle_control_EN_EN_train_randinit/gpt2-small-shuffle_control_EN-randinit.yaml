@@ -1,8 +1,8 @@
-# gpt2{{ no_pos_encodings }}-small-{{ perturbation }}-{{ paren_model }}.yaml
+# gpt2-small-shuffle_control_EN-randinit.yaml
 #   Configuration for the GPT-2 Small Model.
 ---
 model:
-    id: "gpt2{{ no_pos_encodings }}-small"
+    id: "gpt2-small"
 
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
     pretrained_tokenizer: false
@@ -16,7 +16,7 @@ model:
     scale_attn_by_inverse_layer_idx: true
 
     # Initialize Weights from File
-    initial_weights: {{ paren_model_path }}
+    initial_weights: null
     
     # Configure Model From File
-    config_path:  /home/mission-impossible-language-models/mistral/conf/models/gpt2-small-{{ vocab_size }}.json
+    config_path:  /home/mission-impossible-language-models/mistral/conf/models/gpt2-small-62608.json

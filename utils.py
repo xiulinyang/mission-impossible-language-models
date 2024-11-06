@@ -14,8 +14,8 @@ import torch
 # CONSTANTS
 ##############################################################################
 
-EXP_LANGS = ['EN']
-BABYLM_SPLITS = ["EN", 'dev', 'test', 'unittest']
+EXP_LANGS = ['EN', ]
+BABYLM_SPLITS = ["EN_train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
 CHECKPOINTS = list(range(50, 501, 50))
 GENRES = {
@@ -32,6 +32,7 @@ GENRES = {
 }
 CHECKPOINT_WRITE_PATH = "/home/babylm_models"
 CHECKPOINT_READ_PATH = "/home/babylm_models"
+TOKENIZER_PATH = "/home/mission-impossible-language-models/tokenizers/EN"
 BABYLM_DATA_PATH = "/home/mission-impossible-language-models/data/babylm_multilingual/"
 MARKER_HOP_SING = "🅂"
 MARKER_HOP_PLUR = "🄿"
@@ -65,9 +66,11 @@ def write_file(directory, filename, lines):
     f.close()
 
 
-def get_gpt2_tokenizer_with_markers(marker_list):
-    tokenizer = AutoTokenizer.from_pretrained("gpt2")
-
+def get_gpt2_tokenizer_with_markers(marker_list, lang):
+    if lang =='en':
+        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
+    else:
+        print('no language!')
     # If no new markers to add, return normal tokenizer
     if len(marker_list) == 0:
         return tokenizer
@@ -80,35 +83,36 @@ def get_gpt2_tokenizer_with_markers(marker_list):
     return tokenizer
 
 
-gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([])
+gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'en')
 
 
 # GPT-2 hop tokenization
-gpt2_hop_tokenizer = get_gpt2_tokenizer_with_markers(
-    [MARKER_HOP_SING, MARKER_HOP_PLUR])
+#gpt2_hop_tokenizer = get_gpt2_tokenizer_with_markers(
+#    [MARKER_HOP_SING, MARKER_HOP_PLUR])
 # Get ids of marker tokens
-marker_sg_token = gpt2_hop_tokenizer.get_added_vocab()[
-    MARKER_HOP_SING]
-marker_pl_token = gpt2_hop_tokenizer.get_added_vocab()[
-    MARKER_HOP_PLUR]
+#marker_sg_token = gpt2_hop_tokenizer.get_added_vocab()[
+#    MARKER_HOP_SING]
+#marker_pl_token = gpt2_hop_tokenizer.get_added_vocab()[
+#    MARKER_HOP_PLUR]
 
 
 # GPT-2 reverse tokenization
-gpt2_rev_tokenizer = get_gpt2_tokenizer_with_markers(
-    [MARKER_REV])
+#gpt2_rev_tokenizer = get_gpt2_tokenizer_with_markers(
+#    [MARKER_REV])
 # Get ids of marker tokens
-marker_rev_token = gpt2_rev_tokenizer.get_added_vocab()[
-    MARKER_REV]
+#marker_rev_token = gpt2_rev_tokenizer.get_added_vocab()[
+#    MARKER_REV]
 
 # GPT-2 determiner tokenization
-gpt2_det_tokenizer = get_gpt2_tokenizer_with_markers(
-    [BOS_TOKEN])
+#gpt2_det_tokenizer = get_gpt2_tokenizer_with_markers(
+#    [BOS_TOKEN])
 # Get id of BOS token
-bos_token_id = gpt2_det_tokenizer.get_added_vocab()[BOS_TOKEN]
+#bos_token_id = gpt2_det_tokenizer.get_added_vocab()[BOS_TOKEN]
 
 
-MARKER_TOKEN_IDS = [marker_sg_token, marker_pl_token, marker_rev_token]
+#MARKER_TOKEN_IDS = [marker_sg_token, marker_pl_token, marker_rev_token]
 
+MARKER_TOKEN_IDS = []
 
 def compute_surprisals(model, input_ids):
     # Get the log probabilities from the model
@@ -314,7 +318,7 @@ def __perturb_reverse(sent, rng, reverse, full):
 
 def __perturb_shuffle_deterministic(sent, seed, shuffle):
     # Get sentence text and GPT-2 tokens
-    tokens = gpt2_original_tokenizer.encode(sent["sent_text"])
+    tokens = gpt2_tokenizer_en.encode(sent["sent_text"])
     if shuffle:
         default_rng(seed).shuffle(tokens)
     return tokens
@@ -396,7 +400,7 @@ def filter_reverse(sent):
 
 
 def filter_shuffle(sent):
-    tokens = gpt2_original_tokenizer.encode(sent["sent_text"])
+    tokens = gpt2_tokenizer_en.encode(sent["sent_text"])
     return len(tokens) > 1 and len(tokens) <= 350
 
 
@@ -454,109 +458,11 @@ def perturb_shuffle_even_odd(sent):
 
 
 PERTURBATIONS = {
-    "shuffle_control": {
+    "shuffle_control_EN": {
         "perturbation_function": partial(perturb_shuffle_deterministic, seed=None, shuffle=False),
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
+        "gpt2_tokenizer": gpt2_tokenizer_en,
         "color": "#606060",
-    },
-    "shuffle_nondeterministic": {
-        "perturbation_function": partial(perturb_shuffle_nondeterministic, rng=default_rng(0)),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#E8384F",
-    },
-    "shuffle_deterministic21": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, seed=21, shuffle=True),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#FFB000",
-    },
-    "shuffle_deterministic57": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, seed=57, shuffle=True),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#8db000",
-    },
-    "shuffle_deterministic84": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, seed=84, shuffle=True),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#62BB35",
-    },
-    "shuffle_local3": {
-        "perturbation_function": partial(perturb_shuffle_local, seed=0, window=3),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#208EA3",
-    },
-    "shuffle_local5": {
-        "perturbation_function": partial(perturb_shuffle_local, seed=0, window=5),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#4178BC",
-    },
-    "shuffle_local10": {
-        "perturbation_function": partial(perturb_shuffle_local, seed=0, window=10),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#AA71FF",
-    },
-    "shuffle_even_odd": {
-        "perturbation_function": perturb_shuffle_even_odd,
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#E37CFF",
-    },
-    "reverse_control": {
-        "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=False, full=False),
-        "affect_function": affect_reverse,
-        "filter_function": filter_reverse,
-        "gpt2_tokenizer": gpt2_rev_tokenizer,
-        "color": "#606060",
-    },
-    "reverse_partial": {
-        "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=True, full=False),
-        "affect_function": affect_reverse,
-        "filter_function": filter_reverse,
-        "gpt2_tokenizer": gpt2_rev_tokenizer,
-        "color": "#E5A836",
-    },
-    "reverse_full": {
-        "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=False, full=True),
-        "affect_function": affect_reverse,
-        "filter_function": filter_reverse,
-        "gpt2_tokenizer": gpt2_rev_tokenizer,
-        "color": "#A348A6",
-    },
-    "hop_control": {
-        "perturbation_function": perturb_hop_control,
-        "affect_function": affect_hop,
-        "filter_function": filter_hop,
-        "gpt2_tokenizer": gpt2_hop_tokenizer,
-        "color": "#606060",
-    },
-    "hop_tokens4": {
-        "perturbation_function": perturb_hop_tokens4,
-        "affect_function": affect_hop,
-        "filter_function": filter_hop,
-        "gpt2_tokenizer": gpt2_hop_tokenizer,
-        "color": "#fa8128", 
-    },
-    "hop_words4": {
-        "perturbation_function": perturb_hop_words4,
-        "affect_function": affect_hop,
-        "filter_function": filter_hop,
-        "gpt2_tokenizer": gpt2_hop_tokenizer,
-        "color": "#03a0ff",
-    },
+          },
 }

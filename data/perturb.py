@@ -6,7 +6,7 @@ import sys
 sys.path.append("..")
 
 from utils import  EXP_LANGS, PERTURBATIONS, BABYLM_SPLITS, BABYLM_DATA_PATH, \
-    GENRES, MARKER_TOKEN_IDS, marker_sg_token, marker_pl_token, marker_rev_token, write_file
+    GENRES, write_file, MARKER_TOKEN_IDS
 from glob import glob
 import numpy as np
 import itertools
@@ -16,6 +16,7 @@ import tqdm
 import argparse
 import pytest
 
+TRAIN_SPLITS=['EN_train']
 
 def lines_equivalent_3pres(file1_path, file2_path):
     """Compare lines of two files after splitting them."""
@@ -107,7 +108,7 @@ def test_reversal_all_equivalent(split, genre, perturbation_pair):
 
     perturbation1, perturbation2 = perturbation_pair
 
-    if split in EXP_LANGS:
+    if split in TRAIN_SPLITS:
         filename = f"{genre}.train"
     elif split == "test_affected":
         filename = f"{genre}_affected.test"
@@ -238,13 +239,20 @@ if __name__ == "__main__":
                         choices=EXP_LANGS,
                         help='BabyLM dataset choice')
 
+    parser.add_argument('babylm_split',
+                        default='all',
+                        const='all',
+                        nargs='?',
+                        choices=['train', 'dev', 'test'],
+                        help='BabyLM dataset choice')
     # Get args
     args = parser.parse_args()
 
     # Load dataset (only json files containing tagged data)
     babylm_dataset = args.babylm_dataset
-    json_ext = "_parsed.json"
-    babylm_data = glob(f"{BABYLM_DATA_PATH}/babylm_{babylm_dataset}/*{json_ext}")
+    babylm_split = args.babylm_split
+    json_ext = ".json"
+    babylm_data = glob(f"{BABYLM_DATA_PATH}/babylm_{babylm_dataset}_{babylm_split}/*{json_ext}")
 
     # Get perturbation, affect, and filter functions
     perturbation_function = PERTURBATIONS[args.perturbation_type]['perturbation_function']
@@ -252,7 +260,7 @@ if __name__ == "__main__":
     filter_function = PERTURBATIONS[args.perturbation_type]['filter_function']
     gpt2_tokenizer = PERTURBATIONS[args.perturbation_type]['gpt2_tokenizer']
 
-    if babylm_dataset == "test":
+    if babylm_split == "test":
 
         # Iterate over files and do transform
         for file in babylm_data:
@@ -323,9 +331,9 @@ if __name__ == "__main__":
             new_lines = new_lines_unaffected + new_lines_affected
 
             # Name new file
-            if babylm_dataset == "dev":
+            if babylm_split == "dev":
                 new_file = os.path.basename(file).replace(json_ext, ".dev")
-            elif babylm_dataset == 'unittest':
+            elif babylm_split == 'unittest':
                 new_file = os.path.basename(file).replace(json_ext, ".test")
 
                 # Print strings for unittest
@@ -341,7 +349,10 @@ if __name__ == "__main__":
                 new_file = os.path.basename(file).replace(json_ext, ".train")
 
             # Create directory and write file
-            directory = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{args.perturbation_type}/babylm_{babylm_dataset}/"
+            if babylm_split == 'dev':
+                directory = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{args.perturbation_type}/babylm_{babylm_split}/"
+            else:
+                directory = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{args.perturbation_type}/babylm_{babylm_dataset}_{babylm_split}/"
             if not os.path.exists(directory):
                 os.makedirs(directory)
             write_file(directory, new_file, new_lines)

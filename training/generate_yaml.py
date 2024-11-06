@@ -27,7 +27,7 @@ if __name__ == "__main__":
                         default='all',
                         const='all',
                         nargs='?',
-                        choices=["100M", "10M"],
+                        choices=["EN_train"],
                         help='BabyLM train set')
     parser.add_argument('random_seed', type=int, help="Random seed")
     parser.add_argument('paren_model',
