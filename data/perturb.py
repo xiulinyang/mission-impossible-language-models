@@ -5,7 +5,7 @@
 import sys
 sys.path.append("..")
 
-from utils import PERTURBATIONS, BABYLM_SPLITS, BABYLM_DATA_PATH, \
+from utils import  EXP_LANGS, PERTURBATIONS, BABYLM_SPLITS, BABYLM_DATA_PATH, \
     GENRES, MARKER_TOKEN_IDS, marker_sg_token, marker_pl_token, marker_rev_token, write_file
 from glob import glob
 import numpy as np
@@ -44,7 +44,7 @@ perturbation_pairs_3pres = [
     ("4tokens", "4words"),
 ]
 test_data = itertools.product(
-    ["100M", "dev", "test_affected", "test_unaffected"], GENRES.keys(), perturbation_pairs_3pres)
+    ["EN", "dev", "test_affected", "test_unaffected"], GENRES.keys(), perturbation_pairs_3pres)
 
 
 @pytest.mark.parametrize("split, genre, perturbation_pair", test_data)
@@ -52,7 +52,7 @@ def test_3pres_all_equivalent(split, genre, perturbation_pair):
 
     perturbation1, perturbation2 = perturbation_pair
 
-    if split in ("100M", "10M"):
+    if split in EXP_LANGS:
         filename = f"{genre}.train"
     elif split == "test_affected":
         filename = f"{genre}_affected.test"
@@ -100,14 +100,14 @@ perturbation_pairs_reversal = [
     ("reversal", "reversal_identity"),
 ]
 test_data = itertools.product(
-    ["100M", "dev", "test_affected"], GENRES.keys(), perturbation_pairs_reversal)
+    ["EN",  "dev", "test_affected"], GENRES.keys(), perturbation_pairs_reversal)
 
 @pytest.mark.parametrize("split, genre, perturbation_pair", test_data)
 def test_reversal_all_equivalent(split, genre, perturbation_pair):
 
     perturbation1, perturbation2 = perturbation_pair
 
-    if split in ("100M", "10M"):
+    if split in EXP_LANGS:
         filename = f"{genre}.train"
     elif split == "test_affected":
         filename = f"{genre}_affected.test"
@@ -153,7 +153,7 @@ def test_determiner_swap_all_equivalent(split, genre, perturbation_pair):
 
     perturbation1, perturbation2 = perturbation_pair
 
-    if split in ("100M", "10M"):
+    if split in EXP_LANGS:
         filename = f"{genre}.train"
     elif split == "test_affected":
         filename = f"{genre}_affected.test"
@@ -235,7 +235,7 @@ if __name__ == "__main__":
                         default='all',
                         const='all',
                         nargs='?',
-                        choices=BABYLM_SPLITS,
+                        choices=EXP_LANGS,
                         help='BabyLM dataset choice')
 
     # Get args

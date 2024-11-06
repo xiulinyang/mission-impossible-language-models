@@ -14,8 +14,8 @@ import torch
 # CONSTANTS
 ##############################################################################
 
-
-BABYLM_SPLITS = ['100M', '10M', 'dev', 'test', 'unittest']
+EXP_LANGS = ['EN']
+BABYLM_SPLITS = ["EN", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
 CHECKPOINTS = list(range(50, 501, 50))
 GENRES = {
@@ -30,9 +30,9 @@ GENRES = {
     "switchboard": "Switchboard Dialog Act Corpus",
     "wikipedia": "Wikipedia"
 }
-CHECKPOINT_WRITE_PATH = "/local/xiulyang/babylm_models"
-CHECKPOINT_READ_PATH = "/local/xiulyang/babylm_models"
-BABYLM_DATA_PATH = "/local/xiulyang/mission-impossible-language-models/data/babylm/"
+CHECKPOINT_WRITE_PATH = "/home/babylm_models"
+CHECKPOINT_READ_PATH = "/home/babylm_models"
+BABYLM_DATA_PATH = "/home/mission-impossible-language-models/data/babylm_multilingual/"
 MARKER_HOP_SING = "🅂"
 MARKER_HOP_PLUR = "🄿"
 MARKER_REV = "🅁"

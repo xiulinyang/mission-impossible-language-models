@@ -14,9 +14,9 @@ import stanza
 import json
 
 
-test_all_files = sorted(glob.glob("babylm/train_10M/*"))
-test_original_files = [f for f in test_all_files if ".json" not in f]
-test_json_files = [f for f in test_all_files if "_parsed.json" in f]
+test_all_files = sorted(glob.glob("babylm_multilingual/babylm_EN/*"))
+test_original_files = [f for f in test_all_files if ".txt" not in f]
+test_json_files = [f for f in test_all_files if ".json" in f]
 test_cases = list(zip(test_original_files, test_json_files))
 
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
             # Iterate over sents in the line and track annotations
             sent_annotations = []
             for sent in doc.sentences:
-
+                sent_text = ' '.join([word.text for word in sent.words])
                 # Iterate over words in sent and track annotations
                 word_annotations = []
                 for token, word in zip(sent.tokens, sent.words):
@@ -134,13 +134,13 @@ if __name__ == "__main__":
                 if args.parse:
                     constituency_parse = __get_constituency_parse(sent, nlp2)
                     sa = {
-                        'sent_text': sent.text,
+                        'sent_text': sent_text,
                         'constituency_parse': constituency_parse,
                         'word_annotations': word_annotations,
                     }
                 else:
                     sa = {
-                        'sent_text': sent.text,
+                        'sent_text': sent_text,
                         'word_annotations': word_annotations,
                     }
                 sent_annotations.append(sa)  # Track sent annotation
