@@ -65,7 +65,6 @@ if __name__ == "__main__":
                         nargs='+', help="Path to file(s)")
     parser.add_argument('-p', '--parse', action='store_true',
                         help="Include constituency parse")
-    
     parser.add_argument('-b', '--batch_size', type=int)
     # Get args
     args = parser.parse_args()
