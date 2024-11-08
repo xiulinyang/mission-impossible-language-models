@@ -38,9 +38,13 @@ if __name__ =='__main__':
     language = args.lang
     split = args.split
     text, vocab = collect_sents(language, split)
-    print(len(vocab))
+
     old_tokenizer = AutoTokenizer.from_pretrained('gpt2')
     new_tokenizer = old_tokenizer.train_new_from_iterator(text, int(0.4*len(vocab)))
     new_tokenizer.save_pretrained(f'tokenizers/{language}')
-    print(len(new_tokenizer.get_vocab()))
+    vocab_size = str(len(vocab))
+    token_vocab_size = str(len(new_tokenizer.get_vocab()))
+    print(f'The number of unique tokens in {language}: {vocab_size}')
+    print(f'The number of vocabulary in the tokenizer: {token_vocab_size}')
+    print(f'token id of end of text: ')
     print(new_tokenizer.encode('<|endoftext|>'))

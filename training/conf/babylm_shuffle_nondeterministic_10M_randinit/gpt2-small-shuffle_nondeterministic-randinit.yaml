@@ -1,4 +1,4 @@
-# gpt2-small-shuffle_nondeterministic-randinit.yaml
+# gpt2-small-shuffle_nondeterministic_10M-randinit.yaml
 #   Configuration for the GPT-2 Small Model.
 ---
 model:
