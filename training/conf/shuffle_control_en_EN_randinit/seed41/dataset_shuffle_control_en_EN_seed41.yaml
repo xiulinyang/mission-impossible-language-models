@@ -1,9 +1,9 @@
-# dataset_shuffle_control_10M_seed41.yaml
+# dataset_shuffle_control_en_EN_seed41.yaml
 #   Configuration for altered babylm-dataset
 ---
 dataset:
     id: /local/xiulyang/mission-impossible-language-models/training/babylm_dataset.py
-    name: babylm_shuffle_control_10M_seed41
+    name: shuffle_control_en_EN_seed41
     validation_ratio: null
 
     # Number of Preprocessing Workers

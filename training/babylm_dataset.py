@@ -70,12 +70,12 @@ class BabyLMCorpus(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={"data_dir": os.path.join(
-                    self.config.data_dir, "babylm_" + self.config.babylm_train_set), "random_seed": self.config.random_seed, "split": "train"},
+                    self.config.data_dir, "train"), "random_seed": self.config.random_seed, "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={"data_dir": os.path.join(
-                    self.config.data_dir, "babylm_dev"), "random_seed": self.config.random_seed, "split": "valid"},
+                    self.config.data_dir, "dev"), "random_seed": self.config.random_seed, "split": "valid"},
             )
         ]
 

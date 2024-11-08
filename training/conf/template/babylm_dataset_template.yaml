@@ -2,8 +2,8 @@
 #   Configuration for altered babylm-dataset
 ---
 dataset:
-    id: /home/mission-impossible-language-models/training/babylm_dataset.py
-    name: babylm_{{ perturbation }}_{{ train_set }}_seed{{ seed }}
+    id: /local/xiulyang/mission-impossible-language-models/training/babylm_dataset.py
+    name: {{ perturbation }}_{{ train_set }}_seed{{ seed }}
     validation_ratio: null
 
     # Number of Preprocessing Workers
