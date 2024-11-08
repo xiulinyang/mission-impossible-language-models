@@ -251,7 +251,7 @@ if __name__ == "__main__":
     babylm_split = args.split
     json_ext = ".json"
     babylm_data = glob(f"{BABYLM_DATA_PATH}/{babylm_dataset}/{babylm_split}/*{json_ext}")
-
+    print(f"{BABYLM_DATA_PATH}/{babylm_dataset}/{babylm_split}/*{json_ext}")
     # Get perturbation, affect, and filter functions
     perturbation_function = PERTURBATIONS[args.perturbation_type]['perturbation_function']
     affect_function = PERTURBATIONS[args.perturbation_type]['affect_function']
