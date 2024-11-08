@@ -117,8 +117,8 @@ def test_reversal_all_equivalent(split, genre, perturbation_pair):
     elif split == "dev":
         filename = f"{genre}.dev"
 
-    path1 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{perturbation1}/babylm_{split}/{filename}"
-    path2 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{perturbation2}/babylm_{split}/{filename}"
+    path1 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation1}/multilingual_{split}/{filename}"
+    path2 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation2}/multilingual_{split}/{filename}"
 
     assert lines_equivalent_reversal(path1, path2), f"File {filename} of " + \
         f"{perturbation1} and {perturbation2} have non-equivalent lines!"
@@ -163,8 +163,8 @@ def test_determiner_swap_all_equivalent(split, genre, perturbation_pair):
     elif split == "dev":
         filename = f"{genre}.dev"
 
-    path1 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{perturbation1}/babylm_{split}/{filename}"
-    path2 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{perturbation2}/babylm_{split}/{filename}"
+    path1 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation1}/multilingual_{split}/{filename}"
+    path2 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation2}/multilingual__{split}/{filename}"
 
     assert lines_equivalent_determiner_swap(path1, path2), f"File {filename} of " + \
         f"{perturbation1} and {perturbation2} have non-equivalent lines!"
@@ -232,7 +232,7 @@ if __name__ == "__main__":
                         nargs='?',
                         choices=PERTURBATIONS.keys(),
                         help='Perturbation function used to transform BabyLM dataset')
-    parser.add_argument('babylm_dataset',
+    parser.add_argument('lang',
                         default='all',
                         const='all',
                         nargs='?',
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     babylm_dataset = args.babylm_dataset
     babylm_split = args.babylm_split
     json_ext = ".json"
-    babylm_data = glob(f"{BABYLM_DATA_PATH}/babylm_{babylm_dataset}_{babylm_split}/*{json_ext}")
+    babylm_data = glob(f"{BABYLM_DATA_PATH}/{babylm_dataset}/{babylm_split}/*{json_ext}")
 
     # Get perturbation, affect, and filter functions
     perturbation_function = PERTURBATIONS[args.perturbation_type]['perturbation_function']
@@ -289,14 +289,14 @@ if __name__ == "__main__":
                 file).replace(json_ext, "_unaffected_sents.test")
 
             # Create directory
-            data_write_directory = f"{BABYLM_DATA_PATH}/babylm_data_perturbed"
-            directory_affected = f"{data_write_directory}/babylm_{args.perturbation_type}/babylm_test_affected/"
+            data_write_directory = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed"
+            directory_affected = f"{data_write_directory}/multilingual_{args.perturbation_type}/babylm_test_affected/"
             if not os.path.exists(directory_affected):
                 os.makedirs(directory_affected)
-            directory_unaffected = f"{data_write_directory}/babylm_{args.perturbation_type}/babylm_test_unaffected/"
+            directory_unaffected = f"{data_write_directory}/multilingual_{args.perturbation_type}/babylm_test_unaffected/"
             if not os.path.exists(directory_unaffected):
                 os.makedirs(directory_unaffected)
-            directory_unaffected_sents = f"{data_write_directory}/babylm_{args.perturbation_type}/babylm_test_unaffected_sents/"
+            directory_unaffected_sents = f"{data_write_directory}/multilingual_{args.perturbation_type}/babylm_test_unaffected_sents/"
             if not os.path.exists(directory_unaffected_sents):
                 os.makedirs(directory_unaffected_sents)
 
@@ -349,10 +349,7 @@ if __name__ == "__main__":
                 new_file = os.path.basename(file).replace(json_ext, ".train")
 
             # Create directory and write file
-            if babylm_split == 'dev':
-                directory = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{args.perturbation_type}/babylm_{babylm_split}/"
-            else:
-                directory = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{args.perturbation_type}/babylm_{babylm_dataset}_{babylm_split}/"
+            directory = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{args.perturbation_type}/{babylm_dataset}/{babylm_split}/"
             if not os.path.exists(directory):
                 os.makedirs(directory)
             write_file(directory, new_file, new_lines)
