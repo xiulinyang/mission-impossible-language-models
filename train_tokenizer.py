@@ -2,10 +2,9 @@ from transformers import AutoTokenizer
 from glob import glob
 import json
 import argparse
-from utils import EXP_LANGS
-
+EXP_LANGS =['EN']
 def collect_sents(lang,split):
-    data_path = f'data/babylm_multilingual/babylm_{lang}_{split}/{lang}.json'
+    data_path = f'data/multilingual/{lang}/{split}/{lang}.json'
     all_text = []
 
     lang_parse = json.load(open(data_path))
