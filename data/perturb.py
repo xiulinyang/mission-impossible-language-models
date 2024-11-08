@@ -60,8 +60,8 @@ def test_3pres_all_equivalent(split, genre, perturbation_pair):
     elif split == "dev":
         filename = f"{genre}.dev"
 
-    path1 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_3pres_{perturbation1}/babylm_{split}/{filename}"
-    path2 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_3pres_{perturbation2}/babylm_{split}/{filename}"
+    path1 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/babylm_3pres_{perturbation1}/{lang}/{split}/{filename}"
+    path2 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/babylm_3pres_{perturbation2}/{lang}/{split}/{filename}"
 
     assert lines_equivalent_3pres(path1, path2), f"File {filename} of " + \
         f"3pres_{perturbation1} and 3pres_{perturbation2} have non-equivalent lines!"
@@ -173,7 +173,7 @@ def flatten_list(l):
     return list(itertools.chain.from_iterable(l))
 
 
-def process_line(line, lang):
+def process_line(line):
     """
     Process a given line from the dataset, apply transformations to its sentences, 
     and categorize them into affected or unaffected based on the transformation.
@@ -199,7 +199,7 @@ def process_line(line, lang):
     # Apply transformation to each sentence on line
     for sent in line["sent_annotations"]:
 
-        tokens = perturbation_function(sent, lang)
+        tokens = perturbation_function(sent)
         if len([tok for tok in tokens if tok not in MARKER_TOKEN_IDS]) <= 1:
             continue
 

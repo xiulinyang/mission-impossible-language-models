@@ -474,7 +474,7 @@ TOKENIZATIONER = {
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, seed=None, shuffle=False),
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='EN', seed=None, shuffle=False),
         "lang": 'en',
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
