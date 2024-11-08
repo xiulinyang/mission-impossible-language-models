@@ -68,7 +68,7 @@ def write_file(directory, filename, lines):
     f.close()
 
 
-def get_gpt2_tokenizer_with_markers(marker_list, lang=None):
+def get_gpt2_tokenizer_with_markers(marker_list, lang):
     if lang =='EN':
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
     else:
@@ -91,31 +91,31 @@ def get_gpt2_tokenizer_with_markers(marker_list, lang=None):
 
 
 # GPT-2 hop tokenization
-gpt2_hop_tokenizer = get_gpt2_tokenizer_with_markers(
-   [MARKER_HOP_SING, MARKER_HOP_PLUR])
-# Get ids of marker tokens
-marker_sg_token = gpt2_hop_tokenizer.get_added_vocab()[
-   MARKER_HOP_SING]
-marker_pl_token = gpt2_hop_tokenizer.get_added_vocab()[
-   MARKER_HOP_PLUR]
+# gpt2_hop_tokenizer = get_gpt2_tokenizer_with_markers(
+#    [MARKER_HOP_SING, MARKER_HOP_PLUR])
+# # Get ids of marker tokens
+# marker_sg_token = gpt2_hop_tokenizer.get_added_vocab()[
+#    MARKER_HOP_SING]
+# marker_pl_token = gpt2_hop_tokenizer.get_added_vocab()[
+#    MARKER_HOP_PLUR]
 
 
 # GPT-2 reverse tokenization
-gpt2_rev_tokenizer = get_gpt2_tokenizer_with_markers(
-   [MARKER_REV])
-# Get ids of marker tokens
-marker_rev_token = gpt2_rev_tokenizer.get_added_vocab()[
-   MARKER_REV]
+# gpt2_rev_tokenizer = get_gpt2_tokenizer_with_markers(
+#    [MARKER_REV])
+# # Get ids of marker tokens
+# marker_rev_token = gpt2_rev_tokenizer.get_added_vocab()[
+#    MARKER_REV]
+#
+# # GPT-2 determiner tokenization
+# gpt2_det_tokenizer = get_gpt2_tokenizer_with_markers(
+#    [BOS_TOKEN])
+# # Get id of BOS token
+# bos_token_id = gpt2_det_tokenizer.get_added_vocab()[BOS_TOKEN]
 
-# GPT-2 determiner tokenization
-gpt2_det_tokenizer = get_gpt2_tokenizer_with_markers(
-   [BOS_TOKEN])
-# Get id of BOS token
-bos_token_id = gpt2_det_tokenizer.get_added_vocab()[BOS_TOKEN]
 
-
-MARKER_TOKEN_IDS = [marker_sg_token, marker_pl_token, marker_rev_token]
-
+# MARKER_TOKEN_IDS = [marker_sg_token, marker_pl_token, marker_rev_token]
+MARKER_TOKEN_IDS =[]
 def compute_surprisals(model, input_ids):
     # Get the log probabilities from the model
     with torch.no_grad():
@@ -481,102 +481,102 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#606060",
     },
-    "shuffle_nondeterministic": {
-        "perturbation_function": partial(perturb_shuffle_nondeterministic, rng=default_rng(0)),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#E8384F",
-    },
-    "shuffle_deterministic21": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, seed=21, shuffle=True),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#FFB000",
-    },
-    "shuffle_deterministic57": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, seed=57, shuffle=True),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#8db000",
-    },
-    "shuffle_deterministic84": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, seed=84, shuffle=True),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#62BB35",
-    },
-    "shuffle_local3": {
-        "perturbation_function": partial(perturb_shuffle_local, seed=0, window=3),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#208EA3",
-    },
-    "shuffle_local5": {
-        "perturbation_function": partial(perturb_shuffle_local, seed=0, window=5),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#4178BC",
-    },
-    "shuffle_local10": {
-        "perturbation_function": partial(perturb_shuffle_local, seed=0, window=10),
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#AA71FF",
-    },
-    "shuffle_even_odd": {
-        "perturbation_function": perturb_shuffle_even_odd,
-        "affect_function": affect_shuffle,
-        "filter_function": filter_shuffle,
-        "gpt2_tokenizer": gpt2_original_tokenizer,
-        "color": "#E37CFF",
-    },
-    "reverse_control": {
-        "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=False, full=False),
-        "affect_function": affect_reverse,
-        "filter_function": filter_reverse,
-        "gpt2_tokenizer": gpt2_rev_tokenizer,
-        "color": "#606060",
-    },
-    "reverse_partial": {
-        "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=True, full=False),
-        "affect_function": affect_reverse,
-        "filter_function": filter_reverse,
-        "gpt2_tokenizer": gpt2_rev_tokenizer,
-        "color": "#E5A836",
-    },
-    "reverse_full": {
-        "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=False, full=True),
-        "affect_function": affect_reverse,
-        "filter_function": filter_reverse,
-        "gpt2_tokenizer": gpt2_rev_tokenizer,
-        "color": "#A348A6",
-    },
-    "hop_control": {
-        "perturbation_function": perturb_hop_control,
-        "affect_function": affect_hop,
-        "filter_function": filter_hop,
-        "gpt2_tokenizer": gpt2_hop_tokenizer,
-        "color": "#606060",
-    },
-    "hop_tokens4": {
-        "perturbation_function": perturb_hop_tokens4,
-        "affect_function": affect_hop,
-        "filter_function": filter_hop,
-        "gpt2_tokenizer": gpt2_hop_tokenizer,
-        "color": "#fa8128", 
-    },
-    "hop_words4": {
-        "perturbation_function": perturb_hop_words4,
-        "affect_function": affect_hop,
-        "filter_function": filter_hop,
-        "gpt2_tokenizer": gpt2_hop_tokenizer,
-        "color": "#03a0ff",
-    },
+    # "shuffle_nondeterministic": {
+    #     "perturbation_function": partial(perturb_shuffle_nondeterministic, rng=default_rng(0)),
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#E8384F",
+    # },
+    # "shuffle_deterministic21": {
+    #     "perturbation_function": partial(perturb_shuffle_deterministic, seed=21, shuffle=True),
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#FFB000",
+    # },
+    # "shuffle_deterministic57": {
+    #     "perturbation_function": partial(perturb_shuffle_deterministic, seed=57, shuffle=True),
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#8db000",
+    # },
+    # "shuffle_deterministic84": {
+    #     "perturbation_function": partial(perturb_shuffle_deterministic, seed=84, shuffle=True),
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#62BB35",
+    # },
+    # "shuffle_local3": {
+    #     "perturbation_function": partial(perturb_shuffle_local, seed=0, window=3),
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#208EA3",
+    # },
+    # "shuffle_local5": {
+    #     "perturbation_function": partial(perturb_shuffle_local, seed=0, window=5),
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#4178BC",
+    # },
+    # "shuffle_local10": {
+    #     "perturbation_function": partial(perturb_shuffle_local, seed=0, window=10),
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#AA71FF",
+    # },
+    # "shuffle_even_odd": {
+    #     "perturbation_function": perturb_shuffle_even_odd,
+    #     "affect_function": affect_shuffle,
+    #     "filter_function": filter_shuffle,
+    #     "gpt2_tokenizer": gpt2_original_tokenizer,
+    #     "color": "#E37CFF",
+    # },
+    # "reverse_control": {
+    #     "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=False, full=False),
+    #     "affect_function": affect_reverse,
+    #     "filter_function": filter_reverse,
+    #     "gpt2_tokenizer": gpt2_rev_tokenizer,
+    #     "color": "#606060",
+    # },
+    # "reverse_partial": {
+    #     "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=True, full=False),
+    #     "affect_function": affect_reverse,
+    #     "filter_function": filter_reverse,
+    #     "gpt2_tokenizer": gpt2_rev_tokenizer,
+    #     "color": "#E5A836",
+    # },
+    # "reverse_full": {
+    #     "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=False, full=True),
+    #     "affect_function": affect_reverse,
+    #     "filter_function": filter_reverse,
+    #     "gpt2_tokenizer": gpt2_rev_tokenizer,
+    #     "color": "#A348A6",
+    # },
+    # "hop_control": {
+    #     "perturbation_function": perturb_hop_control,
+    #     "affect_function": affect_hop,
+    #     "filter_function": filter_hop,
+    #     "gpt2_tokenizer": gpt2_hop_tokenizer,
+    #     "color": "#606060",
+    # },
+    # "hop_tokens4": {
+    #     "perturbation_function": perturb_hop_tokens4,
+    #     "affect_function": affect_hop,
+    #     "filter_function": filter_hop,
+    #     "gpt2_tokenizer": gpt2_hop_tokenizer,
+    #     "color": "#fa8128",
+    # },
+    # "hop_words4": {
+    #     "perturbation_function": perturb_hop_words4,
+    #     "affect_function": affect_hop,
+    #     "filter_function": filter_hop,
+    #     "gpt2_tokenizer": gpt2_hop_tokenizer,
+    #     "color": "#03a0ff",
+    # },
 }
