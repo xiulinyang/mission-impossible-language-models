@@ -173,7 +173,7 @@ def flatten_list(l):
     return list(itertools.chain.from_iterable(l))
 
 
-def process_line(line):
+def process_line(line, lang):
     """
     Process a given line from the dataset, apply transformations to its sentences, 
     and categorize them into affected or unaffected based on the transformation.
@@ -199,7 +199,7 @@ def process_line(line):
     # Apply transformation to each sentence on line
     for sent in line["sent_annotations"]:
 
-        tokens = perturbation_function(sent)
+        tokens = perturbation_function(sent, lang)
         if len([tok for tok in tokens if tok not in MARKER_TOKEN_IDS]) <= 1:
             continue
 
@@ -257,6 +257,7 @@ if __name__ == "__main__":
     affect_function = PERTURBATIONS[args.perturbation_type]['affect_function']
     filter_function = PERTURBATIONS[args.perturbation_type]['filter_function']
     gpt2_tokenizer = PERTURBATIONS[args.perturbation_type]['gpt2_tokenizer']
+    lang = args.lang
 
     if babylm_split == "test":
 

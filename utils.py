@@ -173,23 +173,23 @@ def __affect_hop_word(word):
         and "Number" in word["feats"]
 
 
-def __perturb_hop_words(sent, num_hops, marker_sg, marker_pl):
+def __perturb_hop_words(sent, num_hops, marker_sg, marker_pl,lang):
     perturbed_tokens, _ = __perturb_hop_words_complete_hops(
-        sent, num_hops, marker_sg, marker_pl)
+        sent, num_hops, marker_sg, marker_pl,lang)
     return perturbed_tokens
 
 
-def check_word_hops_completed(sent, num_hops=4, marker=MARKER_HOP_SING):
+def check_word_hops_completed(sent, lang, num_hops=4, marker=MARKER_HOP_SING):
     _, hops_completed = __perturb_hop_words_complete_hops(
-        sent, num_hops, marker, marker)
+        sent, num_hops, marker, marker,lang)
     return hops_completed
 
 
-def __perturb_hop_words_complete_hops(sent, num_hops, marker_sg, marker_pl):
+def __perturb_hop_words_complete_hops(sent, num_hops, marker_sg, marker_pl, lang):
 
     word_annotations = sent["word_annotations"].copy()
     word_annotations.reverse()
-
+    tokenizer = TOKENIZATIONER[lang]['hop']
     hop_completed = []
     new_sent = []
     for word in word_annotations:
@@ -247,15 +247,16 @@ def __perturb_hop_words_complete_hops(sent, num_hops, marker_sg, marker_pl):
 
     new_sent.reverse()
     sent_string = " ".join(merge_part_tokens(new_sent))
-    tokens = gpt2_hop_tokenizer.encode(sent_string)
+
+    tokens = tokenizer.encode(sent_string)
     return tokens, all(hop_completed) and len(hop_completed) > 0
 
 
-def __perturb_hop_tokens(sent, num_hops):
+def __perturb_hop_tokens(sent, num_hops, lang):
 
     word_annotations = sent["word_annotations"].copy()
     word_annotations.reverse()
-
+    tokenizer = TOKENIZATIONER[lang]['hop']
     new_sent = deque()
     tokens = []
     for word in word_annotations:
@@ -272,7 +273,7 @@ def __perturb_hop_tokens(sent, num_hops):
 
             if len(new_sent) > 0:
                 sent_string = " ".join(merge_part_tokens(new_sent))
-                tokens = gpt2_hop_tokenizer.encode(
+                tokens = tokenizer.encode(
                     " " + sent_string) + tokens
 
             # Use correct marker for singular vs. plural
@@ -292,14 +293,14 @@ def __perturb_hop_tokens(sent, num_hops):
 
     if len(new_sent) > 0:
         sent_string = " ".join(merge_part_tokens(new_sent))
-        tokens = gpt2_hop_tokenizer.encode(sent_string) + tokens
+        tokens = tokenizer.encode(sent_string) + tokens
     return tokens
 
 
-def __perturb_reverse(sent, rng, reverse, full):
-
+def __perturb_reverse(sent, rng, reverse, full, lang):
+    tokenizer = TOKENIZATIONER[lang]['reverse']
     # Get sentence text and GPT-2 tokens
-    tokens = gpt2_rev_tokenizer.encode(sent["sent_text"])
+    tokens = tokenizer.encode(sent["sent_text"])
 
     # Pick random index to insert REV token
     i = rng.choice(len(tokens)+1)
@@ -320,7 +321,7 @@ def __perturb_reverse(sent, rng, reverse, full):
 
 def __perturb_shuffle_deterministic(sent, seed, shuffle, lang):
     # Get sentence text and GPT-2 tokens
-    tokenizer = TOKENIZATIONER[lang]
+    tokenizer = TOKENIZATIONER[lang]['shuffle']
     tokens = tokenizer.encode(sent["sent_text"])
     if shuffle:
         default_rng(seed).shuffle(tokens)
@@ -329,7 +330,7 @@ def __perturb_shuffle_deterministic(sent, seed, shuffle, lang):
 
 def __perturb_shuffle_nondeterministic(sent, rng, lang):
     # Get sentence text and GPT-2 tokens
-    tokenizer = TOKENIZATIONER[lang]
+    tokenizer = TOKENIZATIONER[lang]['shuffle']
     tokens = tokenizer.encode(sent["sent_text"])
     rng.shuffle(tokens)
     return tokens
@@ -337,7 +338,7 @@ def __perturb_shuffle_nondeterministic(sent, rng, lang):
 
 def __perturb_shuffle_local(sent, seed, lang, window=5):
     # Get sentence text and GPT-2 tokens
-    tokenizer = TOKENIZATIONER[lang]
+    tokenizer = TOKENIZATIONER[lang]['shuffle']
     tokens = tokenizer.encode(sent["sent_text"])
 
     # Shuffle tokens in batches of size window
@@ -352,7 +353,7 @@ def __perturb_shuffle_local(sent, seed, lang, window=5):
 
 def __perturb_shuffle_even_odd(sent, lang):
     # Get sentence text and GPT-2 tokens
-    tokenizer = TOKENIZATIONER[lang]
+    tokenizer = TOKENIZATIONER[lang]['shuffle']
     tokens = tokenizer.encode(sent["sent_text"])
     even = [tok for i, tok in enumerate(tokens) if i % 2 == 0]
     odd = [tok for i, tok in enumerate(tokens) if i % 2 != 0]
@@ -406,7 +407,7 @@ def filter_reverse(sent):
 
 
 def filter_shuffle(sent, lang):
-    tokenizer = TOKENIZATIONER[lang]
+    tokenizer = TOKENIZATIONER[lang]['shuffle']
     tokens = tokenizer.encode(sent["sent_text"])
     return len(tokens) > 1 and len(tokens) <= 350
 
@@ -424,20 +425,20 @@ def filter_none(sent):
 ##############################################################################
 
 
-def perturb_hop_words4(sent):
-    return __perturb_hop_words(sent, 4, MARKER_HOP_SING, MARKER_HOP_PLUR)
+def perturb_hop_words4(sent, lang):
+    return __perturb_hop_words(sent, 4, MARKER_HOP_SING, MARKER_HOP_PLUR, lang)
 
 
-def perturb_hop_tokens4(sent):
-    return __perturb_hop_tokens(sent, 4)
+def perturb_hop_tokens4(sent,lang):
+    return __perturb_hop_tokens(sent, 4,lang)
 
 
-def perturb_hop_control(sent):
-    return __perturb_hop_tokens(sent, 0)
+def perturb_hop_control(sent,lang):
+    return __perturb_hop_tokens(sent, 0,lang)
 
 
-def perturb_reverse(sent, rng, reverse=True, full=False):
-    return __perturb_reverse(sent, rng, reverse, full)
+def perturb_reverse(sent, rng, lang, reverse=True, full=False):
+    return __perturb_reverse(sent, rng, reverse, full,lang)
 
 
 def perturb_shuffle_deterministic(sent, lang, seed=None, shuffle=True):
@@ -467,14 +468,17 @@ gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
 
 
 TOKENIZATIONER = {
-    "en":gpt2_tokenizer_en
+    "EN":{"shuffle": gpt2_tokenizer_en,
+          "hop": gpt2_tokenizer_en,
+          "reverse": gpt2_tokenizer_en},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
         "perturbation_function": partial(perturb_shuffle_deterministic, seed=None, shuffle=False),
+        "lang": 'en',
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
-        "gpt2_tokenizer": TOKENIZATIONER['en'],
+        "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#606060",
     },
     "shuffle_nondeterministic": {
