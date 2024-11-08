@@ -161,8 +161,8 @@ def test_determiner_swap_all_equivalent(split, genre, perturbation_pair):
     elif split == "dev":
         filename = f"{genre}.dev"
 
-    path1 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation1}/multilingual_{split}/{filename}"
-    path2 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation2}/multilingual__{split}/{filename}"
+    path1 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation1}/{lang}/{split}/{filename}"
+    path2 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation2}/{lang}/{split}/{filename}"
 
     assert lines_equivalent_determiner_swap(path1, path2), f"File {filename} of " + \
         f"{perturbation1} and {perturbation2} have non-equivalent lines!"
@@ -271,7 +271,7 @@ if __name__ == "__main__":
             # Perturb data iteratively
             results = []
             for line in tqdm.tqdm(data):
-                results.append(process_line(line))
+                results.append(process_line(line,lang))
 
             new_lines_affected, new_lines_unaffected, unaffected_sents = zip(
                 *results)
@@ -318,7 +318,7 @@ if __name__ == "__main__":
             # Perturb data iteratively
             results = []
             for line in tqdm.tqdm(data):
-                results.append(process_line(line))
+                results.append(process_line(line,lang))
 
             new_lines_affected, new_lines_unaffected, _ = zip(
                 *results)
