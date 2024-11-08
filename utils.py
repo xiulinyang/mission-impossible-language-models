@@ -89,31 +89,6 @@ def get_gpt2_tokenizer_with_markers(marker_list, lang):
 
 
 
-
-# GPT-2 hop tokenization
-# gpt2_hop_tokenizer = get_gpt2_tokenizer_with_markers(
-#    [MARKER_HOP_SING, MARKER_HOP_PLUR])
-# # Get ids of marker tokens
-# marker_sg_token = gpt2_hop_tokenizer.get_added_vocab()[
-#    MARKER_HOP_SING]
-# marker_pl_token = gpt2_hop_tokenizer.get_added_vocab()[
-#    MARKER_HOP_PLUR]
-
-
-# GPT-2 reverse tokenization
-# gpt2_rev_tokenizer = get_gpt2_tokenizer_with_markers(
-#    [MARKER_REV])
-# # Get ids of marker tokens
-# marker_rev_token = gpt2_rev_tokenizer.get_added_vocab()[
-#    MARKER_REV]
-#
-# # GPT-2 determiner tokenization
-# gpt2_det_tokenizer = get_gpt2_tokenizer_with_markers(
-#    [BOS_TOKEN])
-# # Get id of BOS token
-# bos_token_id = gpt2_det_tokenizer.get_added_vocab()[BOS_TOKEN]
-
-
 # MARKER_TOKEN_IDS = [marker_sg_token, marker_pl_token, marker_rev_token]
 MARKER_TOKEN_IDS =[]
 def compute_surprisals(model, input_ids):
@@ -458,6 +433,28 @@ def perturb_shuffle_even_odd(sent, lang):
 
 
 gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
+# GPT-2 hop tokenization
+gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
+   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
+# Get ids of marker tokens
+marker_sg_token = gpt2_hop_tokenizer_en.get_added_vocab()[
+   MARKER_HOP_SING]
+marker_pl_token = gpt2_hop_tokenizer_en.get_added_vocab()[
+   MARKER_HOP_PLUR]
+
+
+#GPT-2 reverse tokenization
+gpt2_rev_tokenizer_en = get_gpt2_tokenizer_with_markers(
+   [MARKER_REV], 'EN')
+# Get ids of marker tokens
+marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
+   MARKER_REV]
+
+# GPT-2 determiner tokenization
+gpt2_det_tokenizer_en = get_gpt2_tokenizer_with_markers(
+   [BOS_TOKEN], 'EN')
+# Get id of BOS token
+bos_token_id = gpt2_det_tokenizer_en.get_added_vocab()[BOS_TOKEN]
 #gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
 ##############################################################################
 # PERTURBATIONS
@@ -469,8 +466,8 @@ gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
 
 TOKENIZATIONER = {
     "EN":{"shuffle": gpt2_tokenizer_en,
-          "hop": gpt2_tokenizer_en,
-          "reverse": gpt2_tokenizer_en},
+          "hop": gpt2_hop_tokenizer_en,
+          "reverse": gpt2_rev_tokenizer_en},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
