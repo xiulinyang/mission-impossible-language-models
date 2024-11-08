@@ -15,7 +15,7 @@ import torch
 ##############################################################################
 # CONSTANTS
 ##############################################################################
-ROOT_PATH = 'workspace'
+ROOT_PATH = '/local/xiulyang'
 EXP_LANGS = ['EN', ]
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
@@ -458,7 +458,7 @@ def perturb_shuffle_even_odd(sent, lang):
 
 
 gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
-gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
+#gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
 ##############################################################################
 # PERTURBATIONS
 # This dict maps the name of a perturbation to its perturbation and filter
