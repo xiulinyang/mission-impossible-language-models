@@ -6,7 +6,7 @@ import sys
 sys.path.append("..")
 
 from utils import  EXP_LANGS, PERTURBATIONS, BABYLM_SPLITS, BABYLM_DATA_PATH, \
-    GENRES, write_file, MARKER_TOKEN_IDS
+    GENRES, write_file, MARKER_TOKEN_IDS, marker_rev_token,marker_sg_token,marker_pl_token
 from glob import glob
 import numpy as np
 import itertools
@@ -15,8 +15,6 @@ import os
 import tqdm
 import argparse
 import pytest
-
-TRAIN_SPLITS=['EN_train']
 
 def lines_equivalent_3pres(file1_path, file2_path):
     """Compare lines of two files after splitting them."""
@@ -108,7 +106,7 @@ def test_reversal_all_equivalent(split, genre, perturbation_pair):
 
     perturbation1, perturbation2 = perturbation_pair
 
-    if split in TRAIN_SPLITS:
+    if split in ['train']:
         filename = f"{genre}.train"
     elif split == "test_affected":
         filename = f"{genre}_affected.test"
@@ -117,8 +115,8 @@ def test_reversal_all_equivalent(split, genre, perturbation_pair):
     elif split == "dev":
         filename = f"{genre}.dev"
 
-    path1 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation1}/multilingual_{split}/{filename}"
-    path2 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation2}/multilingual_{split}/{filename}"
+    path1 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation1}/multilingual_{split}/{filename}"
+    path2 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation2}/multilingual_{split}/{filename}"
 
     assert lines_equivalent_reversal(path1, path2), f"File {filename} of " + \
         f"{perturbation1} and {perturbation2} have non-equivalent lines!"
@@ -163,8 +161,8 @@ def test_determiner_swap_all_equivalent(split, genre, perturbation_pair):
     elif split == "dev":
         filename = f"{genre}.dev"
 
-    path1 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation1}/multilingual_{split}/{filename}"
-    path2 = f"{BABYLM_DATA_PATH}/babylm_data_perturbed/multilingual_{perturbation2}/multilingual__{split}/{filename}"
+    path1 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation1}/multilingual_{split}/{filename}"
+    path2 = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{perturbation2}/multilingual__{split}/{filename}"
 
     assert lines_equivalent_determiner_swap(path1, path2), f"File {filename} of " + \
         f"{perturbation1} and {perturbation2} have non-equivalent lines!"
@@ -239,7 +237,7 @@ if __name__ == "__main__":
                         choices=EXP_LANGS,
                         help='BabyLM dataset choice')
 
-    parser.add_argument('babylm_split',
+    parser.add_argument('split',
                         default='all',
                         const='all',
                         nargs='?',
@@ -249,8 +247,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load dataset (only json files containing tagged data)
-    babylm_dataset = args.babylm_dataset
-    babylm_split = args.babylm_split
+    babylm_dataset = args.lang
+    babylm_split = args.split
     json_ext = ".json"
     babylm_data = glob(f"{BABYLM_DATA_PATH}/{babylm_dataset}/{babylm_split}/*{json_ext}")
 
@@ -290,13 +288,13 @@ if __name__ == "__main__":
 
             # Create directory
             data_write_directory = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed"
-            directory_affected = f"{data_write_directory}/multilingual_{args.perturbation_type}/babylm_test_affected/"
+            directory_affected = f"{data_write_directory}/{args.perturbation_type}/test_affected/"
             if not os.path.exists(directory_affected):
                 os.makedirs(directory_affected)
-            directory_unaffected = f"{data_write_directory}/multilingual_{args.perturbation_type}/babylm_test_unaffected/"
+            directory_unaffected = f"{data_write_directory}/{args.perturbation_type}/test_unaffected/"
             if not os.path.exists(directory_unaffected):
                 os.makedirs(directory_unaffected)
-            directory_unaffected_sents = f"{data_write_directory}/multilingual_{args.perturbation_type}/babylm_test_unaffected_sents/"
+            directory_unaffected_sents = f"{data_write_directory}/{args.perturbation_type}/test_unaffected_sents/"
             if not os.path.exists(directory_unaffected_sents):
                 os.makedirs(directory_unaffected_sents)
 
@@ -349,7 +347,7 @@ if __name__ == "__main__":
                 new_file = os.path.basename(file).replace(json_ext, ".train")
 
             # Create directory and write file
-            directory = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/multilingual_{args.perturbation_type}/{babylm_dataset}/{babylm_split}/"
+            directory = f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/{args.perturbation_type}/{babylm_split}/"
             if not os.path.exists(directory):
                 os.makedirs(directory)
             write_file(directory, new_file, new_lines)

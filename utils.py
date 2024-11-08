@@ -17,7 +17,7 @@ import torch
 ##############################################################################
 ROOT_PATH = 'workspace'
 EXP_LANGS = ['EN', ]
-BABYLM_SPLITS = ["EN_train", 'dev', 'test', 'unittest']
+BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
 CHECKPOINTS = list(range(50, 501, 50))
 GENRES = {
@@ -35,7 +35,7 @@ GENRES = {
 CHECKPOINT_WRITE_PATH = f"/{ROOT_PATH}/babylm_models"
 CHECKPOINT_READ_PATH = f"/{ROOT_PATH}/babylm_models"
 TOKENIZER_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/tokenizers/EN"
-BABYLM_DATA_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/data/babylm_multilingual/"
+BABYLM_DATA_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/data/multilingual/"
 MARKER_HOP_SING = "🅂"
 MARKER_HOP_PLUR = "🄿"
 MARKER_REV = "🅁"
