@@ -13,11 +13,11 @@ logger = datasets.logging.get_logger(__name__)
 _DESCRIPTION = """\
     Pre-tokenized BabyLM HuggingFace dataset for verb perturbations.
 """
-_ROOT_PATH = 'workspace'
-_PERTURBED_DATA_PATH = f"/{_ROOT_PATH}/mission-impossible-language-models/data/babylm_multilingual/babylm_data_perturbed"
+_ROOT_PATH = 'local/xiulyang'
+_PERTURBED_DATA_PATH = f"/{_ROOT_PATH}/mission-impossible-language-models/data/multilingual/multilingual_data_perturbed"
 _PERTURBATIONS = ["shuffle_control_en"]
 _RANDOM_SEEDS = [0, 14, 41, 53, 96]
-_TRAIN_SETS = ["en_train"]
+_TRAIN_SETS = ["EN"]
 _EOS_TOKEN_ID = 0
 
 
@@ -40,9 +40,9 @@ class BabyConfig(datasets.BuilderConfig):
 class BabyLMCorpus(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         BabyConfig(
-            name=f"babylm_{perturbation}_{train_set}_seed{random_seed}",
+            name=f"{perturbation}_{train_set}_seed{random_seed}",
             data_dir=os.path.join(
-                _PERTURBED_DATA_PATH, "babylm_" + perturbation),
+                _PERTURBED_DATA_PATH,  perturbation),
             babylm_train_set=train_set,
             random_seed=random_seed,
         ) for perturbation, train_set, random_seed in list(product(_PERTURBATIONS, _TRAIN_SETS, _RANDOM_SEEDS))

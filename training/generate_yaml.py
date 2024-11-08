@@ -27,7 +27,7 @@ if __name__ == "__main__":
                         default='all',
                         const='all',
                         nargs='?',
-                        choices=["EN_train"],
+                        choices=["EN"],
                         help='BabyLM train set')
     parser.add_argument('random_seed', type=int, help="Random seed")
     parser.add_argument('paren_model',
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     no_pos_encodings_underscore = "_no_positional_encodings" if args.no_pos_encodings else ""
 
     # Create directory for yaml
-    yaml_directory = f"conf/babylm_{args.perturbation_type}_{args.train_set}_{paren_model_name}{no_pos_encodings_underscore}/seed{args.random_seed}"
+    yaml_directory = f"conf/{args.perturbation_type}_{args.train_set}_{paren_model_name}{no_pos_encodings_underscore}/seed{args.random_seed}"
     if not os.path.exists(yaml_directory):
         os.makedirs(yaml_directory)
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     # Write model yaml to file
     model_file = open(
-        f"conf/babylm_{args.perturbation_type}_{args.train_set}_{paren_model_name}{no_pos_encodings_underscore}/gpt2{no_pos_encodings_str}-small-{args.perturbation_type}-{paren_model_name}.yaml", "w")
+        f"conf/{args.perturbation_type}_{args.train_set}_{paren_model_name}{no_pos_encodings_underscore}/gpt2{no_pos_encodings_str}-small-{args.perturbation_type}-{paren_model_name}.yaml", "w")
     model_file.write(model_conf)
     model_file.close()
 
@@ -126,6 +126,6 @@ if __name__ == "__main__":
     dataset_file.close()
 
     # Create directory for model checkpoints
-    ckpt_directory = CHECKPOINT_WRITE_PATH + f"/babylm_{args.perturbation_type}_{args.train_set}_{paren_model_name}{no_pos_encodings_underscore}"
+    ckpt_directory = CHECKPOINT_WRITE_PATH + f"/{args.perturbation_type}_{args.train_set}_{paren_model_name}{no_pos_encodings_underscore}"
     if not os.path.exists(ckpt_directory):
         os.makedirs(ckpt_directory)
