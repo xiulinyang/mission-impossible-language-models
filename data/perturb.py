@@ -173,7 +173,7 @@ def flatten_list(l):
     return list(itertools.chain.from_iterable(l))
 
 
-def process_line(line):
+def process_line(line,lang):
     """
     Process a given line from the dataset, apply transformations to its sentences, 
     and categorize them into affected or unaffected based on the transformation.
@@ -206,10 +206,10 @@ def process_line(line):
         token_line = " ".join([str(tok) for tok in tokens])
 
         # Check if sent is affected
-        if affect_function(sent):
+        if affect_function(sent,lang):
 
             # Check if this affected sentence should be filtered or not
-            if filter_function(sent):
+            if filter_function(sent,lang):
                 new_lines_affected.append(token_line + "\n")
 
         else:  # Unaffected sentences

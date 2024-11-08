@@ -344,20 +344,20 @@ def __perturb_shuffle_even_odd(sent, lang):
 ##############################################################################
 
 
-def affect_hop(sent):
+def affect_hop(sent,lang):
     return any([__affect_hop_word(word) for word in sent['word_annotations']]) \
         and sent["constituency_parse"] is not None
 
 
-def affect_reverse(sent):
+def affect_reverse(sent,lang):
     return True
 
 
-def affect_shuffle(sent):
+def affect_shuffle(sent,lang):
     return True
 
 
-def affect_none(sent):
+def affect_none(sent,lang):
     return False
 
 
@@ -370,14 +370,14 @@ def affect_none(sent):
 ##############################################################################
 
 
-def filter_hop(sent):
+def filter_hop(sent,lang):
     # Assertion needed since filter function is only defined for affected
     # sentences
     assert (affect_hop(sent))
     return check_word_hops_completed(sent, 4)
 
 
-def filter_reverse(sent):
+def filter_reverse(sent,lang):
     return True
 
 
@@ -387,7 +387,7 @@ def filter_shuffle(sent, lang):
     return len(tokens) > 1 and len(tokens) <= 350
 
 
-def filter_none(sent):
+def filter_none(sent,lang):
     return False
 
 
