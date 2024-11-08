@@ -69,7 +69,7 @@ def write_file(directory, filename, lines):
 
 
 def get_gpt2_tokenizer_with_markers(marker_list, lang=None):
-    if lang =='en':
+    if lang =='EN':
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
     else:
         WarningMessage("You didn't specify a language yet, "
@@ -457,7 +457,7 @@ def perturb_shuffle_even_odd(sent, lang):
     return __perturb_shuffle_even_odd(sent, lang)
 
 
-gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'en')
+gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
 gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
 ##############################################################################
 # PERTURBATIONS
