@@ -72,6 +72,8 @@ def write_file(directory, filename, lines):
 def get_gpt2_tokenizer_with_markers(marker_list, lang):
     if lang =='EN':
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
+    elif lang =='DE':
+        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
     else:
         WarningMessage("You didn't specify a language yet, "
                        "so we use the English gpt2 tokenizer by default!")
