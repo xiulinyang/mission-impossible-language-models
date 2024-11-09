@@ -16,8 +16,8 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-LANG = 'EN'
-EXP_LANGS = ['EN', ]
+LANG = 'DE'
+EXP_LANGS = ['EN', 'DE']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
 CHECKPOINTS = list(range(50, 501, 50))
@@ -434,9 +434,12 @@ def perturb_shuffle_even_odd(sent, lang):
 
 
 gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
+gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([],'DE')
 # GPT-2 hop tokenization
 gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
+gpt2_hop_tokenizer_de = get_gpt2_tokenizer_with_markers(
+   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'DE')
 # Get ids of marker tokens
 marker_sg_token = gpt2_hop_tokenizer_en.get_added_vocab()[
    MARKER_HOP_SING]
@@ -447,6 +450,8 @@ marker_pl_token = gpt2_hop_tokenizer_en.get_added_vocab()[
 #GPT-2 reverse tokenization
 gpt2_rev_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'EN')
+gpt2_rev_tokenizer_de = get_gpt2_tokenizer_with_markers(
+   [MARKER_REV], 'DE')
 # Get ids of marker tokens
 marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
    MARKER_REV]
@@ -454,6 +459,8 @@ marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
 # GPT-2 determiner tokenization
 gpt2_det_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [BOS_TOKEN], 'EN')
+gpt2_det_tokenizer_de = get_gpt2_tokenizer_with_markers(
+   [BOS_TOKEN], 'DE')
 # Get id of BOS token
 bos_token_id = gpt2_det_tokenizer_en.get_added_vocab()[BOS_TOKEN]
 #gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
@@ -469,6 +476,9 @@ TOKENIZATIONER = {
     "EN":{"shuffle": gpt2_tokenizer_en,
           "hop": gpt2_hop_tokenizer_en,
           "reverse": gpt2_rev_tokenizer_en},
+"DE":{"shuffle": gpt2_tokenizer_de,
+          "hop": gpt2_hop_tokenizer_de,
+          "reverse": gpt2_rev_tokenizer_de},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -477,6 +487,14 @@ PERTURBATIONS = {
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
+        "color": "#606060",
+    },
+"shuffle_control_de": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='DE', seed=None, shuffle=False),
+        "lang": 'en',
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['DE']['shuffle'],
         "color": "#606060",
     },
     "shuffle_local3_en": {
