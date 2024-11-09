@@ -15,7 +15,7 @@ import torch
 ##############################################################################
 # CONSTANTS
 ##############################################################################
-ROOT_PATH = '/local/xiulyang'
+ROOT_PATH = '/workspace'
 EXP_LANGS = ['EN', ]
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]

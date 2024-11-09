@@ -2,7 +2,7 @@
 # prepare_training.sh
 # author: Julie Kallini
 
-readonly MISTRAL_PATH=/local/xiulyang/mission-impossible-language-models/mistral
+readonly MISTRAL_PATH=/workspace/mission-impossible-language-models/mistral
 
 echo "
 -------------------------------------------------------------------------------
