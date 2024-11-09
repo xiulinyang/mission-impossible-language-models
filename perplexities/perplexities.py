@@ -8,7 +8,7 @@ sys.path.append("..")
 from transformers import GPT2LMHeadModel
 from gpt2_no_positional_encoding_model import GPT2NoPositionalEncodingLMHeadModel
 from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, BABYLM_DATA_PATH, \
-    PAREN_MODELS, gpt2_original_tokenizer
+    PAREN_MODELS, gpt2_tokenizer_en
 from tqdm import tqdm
 from glob import glob
 from numpy.random import default_rng
@@ -19,7 +19,7 @@ import argparse
 import os
 
 
-MAX_TRAINING_STEPS = 3000
+MAX_TRAINING_STEPS = 2000
 CHECKPOINTS = list(range(100, MAX_TRAINING_STEPS+1, 100))
 
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
                         default='all',
                         const='all',
                         nargs='?',
-                        choices=["100M", "10M"],
+                        choices=["EN", "DE"],
                         help='BabyLM train set')
     parser.add_argument('random_seed', type=int, help="Random seed")
     parser.add_argument('paren_model',
@@ -112,12 +112,12 @@ if __name__ == "__main__":
     no_pos_encodings_underscore = "_no_positional_encodings" if args.no_pos_encodings else ""
 
     # Get path to model
-    model = f"babylm_{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}_seed{args.random_seed}"
-    model_path = f"{CHECKPOINT_READ_PATH}/babylm_{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}/{model}/runs/{model}/checkpoint-"
+    model = f"{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}_seed{args.random_seed}"
+    model_path = f"{CHECKPOINT_READ_PATH}/{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}/babylm_{model}/runs/{model}/checkpoint-"
 
     # Get perturbed test files
     test_files = sorted(glob(
-        f"{BABYLM_DATA_PATH}/babylm_data_perturbed/babylm_{args.test_perturbation_type}/babylm_test_affected/*"))
+        f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/{args.test_perturbation_type}/test_affected/*"))
 
     FILE_SAMPLE_SIZE = 1000
     rng = default_rng(args.random_seed)
@@ -132,14 +132,15 @@ if __name__ == "__main__":
         f = open(test_file, 'r')
         file_token_sequences = [
             [int(s) for s in l.split()] for l in f.readlines()]
-        sample_indices = rng.choice(
-            list(range(len(file_token_sequences))), FILE_SAMPLE_SIZE, replace=False)
+        sample_indices = list(range(len(file_token_sequences)))
+        #rng.choice(
+        #    list(range(len(file_token_sequences))), FILE_SAMPLE_SIZE, replace=False)
         file_token_sequences = [file_token_sequences[i]
                                 for i in sample_indices]
         token_sequences.extend(file_token_sequences)
 
     # For logging/debugging, include decoded sentence
-    test_sents = [gpt2_original_tokenizer.decode(
+    test_sents = [gpt2_tokenizer_en.decode(
         toks) for toks in token_sequences]
 
     ppl_df = pd.DataFrame({
@@ -164,7 +165,7 @@ if __name__ == "__main__":
         for i in tqdm(range(0, len(token_sequences), BATCH_SIZE)):
             batch = token_sequences[i:i+BATCH_SIZE]
             ppls = get_perplexities(
-                model, batch, gpt2_original_tokenizer.eos_token_id)
+                model, batch, gpt2_tokenizer_en.eos_token_id)
             perplexities.extend(ppls)
 
         # Add ppls to df

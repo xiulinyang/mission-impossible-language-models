@@ -15,7 +15,8 @@ import torch
 ##############################################################################
 # CONSTANTS
 ##############################################################################
-ROOT_PATH = '/workspace'
+ROOT_PATH = '/local/xiulyang'
+LANG = 'EN'
 EXP_LANGS = ['EN', ]
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
@@ -34,7 +35,7 @@ GENRES = {
 }
 CHECKPOINT_WRITE_PATH = f"/{ROOT_PATH}/babylm_models"
 CHECKPOINT_READ_PATH = f"/{ROOT_PATH}/babylm_models"
-TOKENIZER_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/tokenizers/EN"
+TOKENIZER_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/tokenizers/{LANG}"
 BABYLM_DATA_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/data/multilingual/"
 MARKER_HOP_SING = "🅂"
 MARKER_HOP_PLUR = "🄿"

@@ -2,7 +2,7 @@ from transformers import AutoTokenizer
 from glob import glob
 import json
 import argparse
-EXP_LANGS =['EN']
+EXP_LANGS =['EN','DE']
 def collect_sents(lang,split):
     data_path = f'data/multilingual/{lang}/{split}/{lang}.json'
     all_text = []

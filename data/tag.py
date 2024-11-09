@@ -71,14 +71,14 @@ if __name__ == "__main__":
 
     # Init Stanza NLP tools
     nlp1 = stanza.Pipeline(
-        lang='en',
+        lang='de',
         processors='tokenize, pos, lemma',
         package="default_accurate",
         use_gpu=True)
 
     # If constituency parse is needed, init second Stanza parser
     if args.parse:
-        nlp2 = stanza.Pipeline(lang='en',
+        nlp2 = stanza.Pipeline(lang='de',
                                processors='tokenize,pos,constituency',
                                package="default_accurate",
                                use_gpu=True)
@@ -113,7 +113,7 @@ if __name__ == "__main__":
             # Iterate over sents in the line and track annotations
             sent_annotations = []
             for sent in doc.sentences:
-                sent_text = ' '.join([word.text for word in sent.words])
+                sent_text = ' '.join([word.text for word in sent.tokens])
                 # Iterate over words in sent and track annotations
                 word_annotations = []
                 for token, word in zip(sent.tokens, sent.words):
