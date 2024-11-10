@@ -16,8 +16,8 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-LANG = 'DE'
-EXP_LANGS = ['EN', 'DE']
+LANG = 'RU'
+EXP_LANGS = ['EN', 'DE', 'RU']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
 CHECKPOINTS = list(range(50, 501, 50))
