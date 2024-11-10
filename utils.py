@@ -70,9 +70,7 @@ def write_file(directory, filename, lines):
 
 
 def get_gpt2_tokenizer_with_markers(marker_list, lang):
-    if lang =='EN':
-        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
-    elif lang =='DE':
+    if lang in ['EN', 'DE', 'RU']:
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
     else:
         WarningMessage("You didn't specify a language yet, "
@@ -376,7 +374,7 @@ def affect_none(sent,lang):
 def filter_hop(sent,lang):
     # Assertion needed since filter function is only defined for affected
     # sentences
-    assert (affect_hop(sent))
+    assert (affect_hop(sent,lang))
     return check_word_hops_completed(sent, 4)
 
 
@@ -437,11 +435,15 @@ def perturb_shuffle_even_odd(sent, lang):
 
 gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
 gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([],'DE')
+gpt2_tokenizer_ru = get_gpt2_tokenizer_with_markers([],'RU')
 # GPT-2 hop tokenization
 gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
 gpt2_hop_tokenizer_de = get_gpt2_tokenizer_with_markers(
    [MARKER_HOP_SING, MARKER_HOP_PLUR], 'DE')
+gpt2_hop_tokenizer_ru = get_gpt2_tokenizer_with_markers(
+   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'RU')
+
 # Get ids of marker tokens
 marker_sg_token = gpt2_hop_tokenizer_en.get_added_vocab()[
    MARKER_HOP_SING]
@@ -454,6 +456,8 @@ gpt2_rev_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'EN')
 gpt2_rev_tokenizer_de = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'DE')
+gpt2_rev_tokenizer_ru = get_gpt2_tokenizer_with_markers(
+   [MARKER_REV], 'RU')
 # Get ids of marker tokens
 marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
    MARKER_REV]
@@ -463,6 +467,8 @@ gpt2_det_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [BOS_TOKEN], 'EN')
 gpt2_det_tokenizer_de = get_gpt2_tokenizer_with_markers(
    [BOS_TOKEN], 'DE')
+gpt2_det_tokenizer_ru = get_gpt2_tokenizer_with_markers(
+    [BOS_TOKEN], 'RU')
 # Get id of BOS token
 bos_token_id = gpt2_det_tokenizer_en.get_added_vocab()[BOS_TOKEN]
 #gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
@@ -481,6 +487,9 @@ TOKENIZATIONER = {
 "DE":{"shuffle": gpt2_tokenizer_de,
           "hop": gpt2_hop_tokenizer_de,
           "reverse": gpt2_rev_tokenizer_de},
+"RU":{"shuffle": gpt2_tokenizer_ru,
+          "hop": gpt2_hop_tokenizer_ru,
+          "reverse": gpt2_rev_tokenizer_ru},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -497,6 +506,14 @@ PERTURBATIONS = {
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['DE']['shuffle'],
+        "color": "#606060",
+    },
+"shuffle_control_ru": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='RU', seed=None, shuffle=False),
+        "lang": 'en',
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['RU']['shuffle'],
         "color": "#606060",
     },
     "shuffle_local3_en": {
@@ -520,6 +537,7 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#FFB000",
     },
+
     "shuffle_deterministic57_en": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='EN',seed=57, shuffle=True),
         "affect_function": affect_shuffle,
