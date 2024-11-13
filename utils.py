@@ -16,8 +16,8 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-LANG = 'RO'
-EXP_LANGS = ['EN', 'DE', 'RU', 'RO']
+LANG = 'TR'
+EXP_LANGS = ['EN', 'DE', 'RU', 'TR']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
 CHECKPOINTS = list(range(50, 501, 50))
@@ -437,6 +437,7 @@ gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
 gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([],'DE')
 gpt2_tokenizer_ru = get_gpt2_tokenizer_with_markers([],'RU')
 gpt2_tokenizer_ro = get_gpt2_tokenizer_with_markers([],'RO')
+gpt2_tokenizer_tr = get_gpt2_tokenizer_with_markers([],'TR')
 # GPT-2 hop tokenization
 gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
@@ -447,6 +448,8 @@ gpt2_hop_tokenizer_ru = get_gpt2_tokenizer_with_markers(
 
 gpt2_hop_tokenizer_ro = get_gpt2_tokenizer_with_markers(
    [MARKER_HOP_SING, MARKER_HOP_PLUR], 'RO')
+gpt2_hop_tokenizer_tr = get_gpt2_tokenizer_with_markers(
+   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'TR')
 # Get ids of marker tokens
 marker_sg_token = gpt2_hop_tokenizer_en.get_added_vocab()[
    MARKER_HOP_SING]
@@ -461,8 +464,8 @@ gpt2_rev_tokenizer_de = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'DE')
 gpt2_rev_tokenizer_ru = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'RU')
-gpt2_rev_tokenizer_ro = get_gpt2_tokenizer_with_markers(
-   [MARKER_REV], 'RO')
+gpt2_rev_tokenizer_tr = get_gpt2_tokenizer_with_markers(
+   [MARKER_REV], 'TR')
 # Get ids of marker tokens
 marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
    MARKER_REV]
@@ -474,8 +477,8 @@ gpt2_det_tokenizer_de = get_gpt2_tokenizer_with_markers(
    [BOS_TOKEN], 'DE')
 gpt2_det_tokenizer_ru = get_gpt2_tokenizer_with_markers(
     [BOS_TOKEN], 'RU')
-gpt2_det_tokenizer_ro = get_gpt2_tokenizer_with_markers(
-    [BOS_TOKEN], 'RO')
+gpt2_det_tokenizer_tr = get_gpt2_tokenizer_with_markers(
+    [BOS_TOKEN], 'TR')
 # Get id of BOS token
 bos_token_id = gpt2_det_tokenizer_en.get_added_vocab()[BOS_TOKEN]
 #gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
@@ -497,9 +500,9 @@ TOKENIZATIONER = {
 "RU":{"shuffle": gpt2_tokenizer_ru,
           "hop": gpt2_hop_tokenizer_ru,
           "reverse": gpt2_rev_tokenizer_ru},
-"RO":{"shuffle": gpt2_tokenizer_ro,
-          "hop": gpt2_hop_tokenizer_ro,
-          "reverse": gpt2_rev_tokenizer_ro},
+"TR":{"shuffle": gpt2_tokenizer_tr,
+          "hop": gpt2_hop_tokenizer_tr,
+          "reverse": gpt2_rev_tokenizer_tr},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -518,12 +521,12 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['DE']['shuffle'],
         "color": "#606060",
     },
-"shuffle_control_ro": {
-        "perturbation_function": partial(perturb_shuffle_deterministic, lang='RO', seed=None, shuffle=False),
+"shuffle_control_tr": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='TR', seed=None, shuffle=False),
         "lang": 'ro',
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
-        "gpt2_tokenizer": TOKENIZATIONER['RO']['shuffle'],
+        "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
         "color": "#606060",
     },
 "shuffle_control_ru": {
