@@ -16,8 +16,8 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-LANG = 'TR'
-EXP_LANGS = ['EN', 'DE', 'RU', 'TR']
+LANG = 'RO'
+EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
 CHECKPOINTS = list(range(50, 501, 50))
@@ -70,7 +70,7 @@ def write_file(directory, filename, lines):
 
 
 def get_gpt2_tokenizer_with_markers(marker_list, lang):
-    if lang in ['EN', 'DE', 'RU']:
+    if lang in ['EN', 'DE', 'RU','RO', 'TR']:
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
     else:
         WarningMessage("You didn't specify a language yet, "
@@ -466,6 +466,8 @@ gpt2_rev_tokenizer_ru = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'RU')
 gpt2_rev_tokenizer_tr = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'TR')
+gpt2_rev_tokenizer_ro = get_gpt2_tokenizer_with_markers(
+   [MARKER_REV], 'RO')
 # Get ids of marker tokens
 marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
    MARKER_REV]
@@ -503,6 +505,9 @@ TOKENIZATIONER = {
 "TR":{"shuffle": gpt2_tokenizer_tr,
           "hop": gpt2_hop_tokenizer_tr,
           "reverse": gpt2_rev_tokenizer_tr},
+"RO":{"shuffle": gpt2_tokenizer_ro,
+          "hop": gpt2_hop_tokenizer_ro,
+          "reverse": gpt2_rev_tokenizer_ro},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -527,6 +532,15 @@ PERTURBATIONS = {
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+        "color": "#606060",
+    },
+
+"shuffle_control_ro": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='RO', seed=None, shuffle=False),
+        "lang": 'ro',
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['RO']['shuffle'],
         "color": "#606060",
     },
 "shuffle_control_ru": {
