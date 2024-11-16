@@ -8,7 +8,7 @@ sys.path.append("..")
 from transformers import GPT2LMHeadModel
 from gpt2_no_positional_encoding_model import GPT2NoPositionalEncodingLMHeadModel
 from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, BABYLM_DATA_PATH, \
-    PAREN_MODELS, gpt2_tokenizer_en
+    PAREN_MODELS, gpt2_tokenizer_en, gpt2_tokenizer_de
 from tqdm import tqdm
 from glob import glob
 from numpy.random import default_rng
@@ -18,9 +18,10 @@ import itertools
 import argparse
 import os
 
+gpt2_tokenizer = gpt2_tokenizer_de
 
-MAX_TRAINING_STEPS = 2000
-CHECKPOINTS = list(range(100, MAX_TRAINING_STEPS+1, 100))
+MAX_TRAINING_STEPS = 500
+CHECKPOINTS = list(range(0, MAX_TRAINING_STEPS+1, 50))
 
 
 def create_attention_mask(token_lists):
@@ -95,7 +96,7 @@ if __name__ == "__main__":
                         default='all',
                         const='all',
                         nargs='?',
-                        choices=["EN", "DE"],
+                        choices=["EN", "DE", "RU", "RO", "TR"],
                         help='BabyLM train set')
     parser.add_argument('random_seed', type=int, help="Random seed")
     parser.add_argument('paren_model',
@@ -104,13 +105,14 @@ if __name__ == "__main__":
                         nargs='?',
                         choices=list(PAREN_MODELS.keys()) + ["randinit"],
                         help='Parenthesis model')
+    parser.add_argument('vs', type=float, help='Vocabulary size')
     parser.add_argument('-np', '--no_pos_encodings', action='store_true',
                         help="Train GPT-2 with no positional encodings")
 
     # Get args
     args = parser.parse_args()
     no_pos_encodings_underscore = "_no_positional_encodings" if args.no_pos_encodings else ""
-
+    vs = args.vs
     # Get path to model
     model = f"{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}_seed{args.random_seed}"
     model_path = f"{CHECKPOINT_READ_PATH}/{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}/babylm_{model}/runs/{model}/checkpoint-"
@@ -119,7 +121,7 @@ if __name__ == "__main__":
     test_files = sorted(glob(
         f"{BABYLM_DATA_PATH}/multilingual_data_perturbed/{args.test_perturbation_type}/test_affected/*"))
 
-    FILE_SAMPLE_SIZE = 1000
+    #FILE_SAMPLE_SIZE = 1000
     rng = default_rng(args.random_seed)
 
     # Iterate over data files to get perplexity data
@@ -140,7 +142,7 @@ if __name__ == "__main__":
         token_sequences.extend(file_token_sequences)
 
     # For logging/debugging, include decoded sentence
-    test_sents = [gpt2_tokenizer_en.decode(
+    test_sents = [gpt2_tokenizer.decode(
         toks) for toks in token_sequences]
 
     ppl_df = pd.DataFrame({
@@ -165,7 +167,7 @@ if __name__ == "__main__":
         for i in tqdm(range(0, len(token_sequences), BATCH_SIZE)):
             batch = token_sequences[i:i+BATCH_SIZE]
             ppls = get_perplexities(
-                model, batch, gpt2_tokenizer_en.eos_token_id)
+                model, batch, gpt2_tokenizer.eos_token_id)
             perplexities.extend(ppls)
 
         # Add ppls to df
@@ -175,7 +177,8 @@ if __name__ == "__main__":
     directory = f"perplexity_results/{args.perturbation_type}_{args.train_set}{no_pos_encodings_underscore}"
     if not os.path.exists(directory):
         os.makedirs(directory)
+    vs = str(vs)
     file = directory + \
-        f"/{args.paren_model}_seed{args.random_seed}_test_{args.test_perturbation_type}.csv"
+        f"/{args.paren_model}_seed{args.random_seed}_test_{args.test_perturbation_type}_{vs}.csv"
     print(f"Writing results to CSV: {file}")
     ppl_df.to_csv(file)
