@@ -16,7 +16,7 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-LANG = 'RO'
+LANG = 'TR'
 EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
@@ -545,7 +545,7 @@ PERTURBATIONS = {
     },
 "shuffle_control_ru": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='RU', seed=None, shuffle=False),
-        "lang": 'en',
+        "lang": 'ru',
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['RU']['shuffle'],

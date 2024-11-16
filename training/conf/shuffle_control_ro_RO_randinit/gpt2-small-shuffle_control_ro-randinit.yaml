@@ -1,4 +1,4 @@
-# gpt2-small-shuffle_control_en-randinit.yaml
+# gpt2-small-shuffle_control_ro-randinit.yaml
 #   Configuration for the GPT-2 Small Model.
 ---
 model:
@@ -19,4 +19,4 @@ model:
     initial_weights: null
     
     # Configure Model From File
-    config_path:  /local/xiulyang/mission-impossible-language-models/mistral/conf/models/gpt2-small-14224.json
+    config_path:  /local/xiulyang/mission-impossible-language-models/mistral/conf/models/gpt2-small-26787.json

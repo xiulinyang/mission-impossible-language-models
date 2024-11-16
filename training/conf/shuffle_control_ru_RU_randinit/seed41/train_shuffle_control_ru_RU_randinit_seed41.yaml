@@ -1,14 +1,14 @@
-# train_{{ perturbation }}_{{ train_set }}_{{ paren_model }}{{ no_pos_encodings_underscore }}_seed{{ seed }}.yaml
+# train_shuffle_control_ru_RU_randinit_seed41.yaml
 #   Based on mistral-small.yaml.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/dataset_{{ perturbation }}_{{ train_set }}_seed{{ seed }}.yaml
-    - models/gpt2{{ no_pos_encodings }}-small-{{ perturbation }}-{{ paren_model }}.yaml
+    - datasets/dataset_shuffle_control_ru_RU_seed41.yaml
+    - models/gpt2-small-shuffle_control_ru-randinit.yaml
     - trainers/gpt2-small.yaml
 
 # Run ID -- make sure to override!
-run_id: {{ perturbation }}_{{ train_set }}_{{ paren_model }}{{ no_pos_encodings_underscore }}_seed{{ seed }}
+run_id: shuffle_control_ru_RU_randinit_seed41
 
 # Weights & Biases
 wandb: xiulin-yang-compling
@@ -16,8 +16,8 @@ group: xiulin-yang
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: {{ ckpt_path }}/{{ perturbation }}_{{ train_set }}_{{ paren_model }}{{ no_pos_encodings_underscore }}/babylm_{{ perturbation }}_{{ train_set }}_{{ paren_model }}{{ no_pos_encodings_underscore }}_seed{{ seed }}/artifacts
-    run_dir: {{ ckpt_path }}/{{ perturbation }}_{{ train_set }}_{{ paren_model }}{{ no_pos_encodings_underscore }}/babylm_{{ perturbation }}_{{ train_set }}_{{ paren_model }}{{ no_pos_encodings_underscore }}_seed{{ seed }}/runs
+    cache_dir: //local/xiulyang/babylm_models/shuffle_control_ru_RU_randinit/babylm_shuffle_control_ru_RU_randinit_seed41/artifacts
+    run_dir: //local/xiulyang/babylm_models/shuffle_control_ru_RU_randinit/babylm_shuffle_control_ru_RU_randinit_seed41/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 512
@@ -46,4 +46,4 @@ world_size: -1
 log_level: 20
 
 # Random Seed
-seed: {{ seed }}
+seed: 41

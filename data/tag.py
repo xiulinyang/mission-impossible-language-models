@@ -68,17 +68,17 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--batch_size', type=int)
     # Get args
     args = parser.parse_args()
-
+    stanza.download('fr')
     # Init Stanza NLP tools
     nlp1 = stanza.Pipeline(
-        lang='de',
+        lang='fr',
         processors='tokenize, pos, lemma',
         package="default_accurate",
         use_gpu=True)
 
     # If constituency parse is needed, init second Stanza parser
     if args.parse:
-        nlp2 = stanza.Pipeline(lang='de',
+        nlp2 = stanza.Pipeline(lang='fr',
                                processors='tokenize,pos,constituency',
                                package="default_accurate",
                                use_gpu=True)
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
         print(file.name)
         lines = file.readlines()
-
+        
         # Strip lines and join text
         print("Concatenating lines...")
         lines = [l.strip() for l in lines]

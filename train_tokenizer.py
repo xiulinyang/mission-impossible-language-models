@@ -2,7 +2,8 @@ from transformers import AutoTokenizer
 from glob import glob
 import json
 import argparse
-EXP_LANGS =['EN','DE']
+
+EXP_LANGS =['EN','DE','RO', 'TR','RU']
 def collect_sents(lang,split):
     data_path = f'data/multilingual/{lang}/{split}/{lang}.json'
     all_text = []
@@ -32,14 +33,19 @@ if __name__ =='__main__':
                         nargs='?',
                         choices=['train', 'dev', 'test'],
                         help='language for the experiment')
+    
+    parser.add_argument('size', 
+                        type=float,
+                        help='the size of vocab')
     # Get args
     args = parser.parse_args()
     language = args.lang
     split = args.split
     text, vocab = collect_sents(language, split)
-
+    size = args.size
+    vocab_size = int(size*len(vocab))
     old_tokenizer = AutoTokenizer.from_pretrained('gpt2')
-    new_tokenizer = old_tokenizer.train_new_from_iterator(text, int(0.4*len(vocab)))
+    new_tokenizer = old_tokenizer.train_new_from_iterator(text, vocab_size)
     new_tokenizer.save_pretrained(f'tokenizers/{language}')
     vocab_size = str(len(vocab))
     token_vocab_size = str(len(new_tokenizer.get_vocab()))

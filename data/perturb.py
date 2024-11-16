@@ -145,7 +145,7 @@ perturbation_pairs_reversal = [
     ("determiner_swap", "determiner_swap_identity"),
 ]
 test_data = itertools.product(
-    ["100M", "dev", "test_affected", "test_unaffected"], GENRES.keys(), perturbation_pairs_reversal)
+    [ "dev", "test_affected", "test_unaffected"], GENRES.keys(), perturbation_pairs_reversal)
 
 @pytest.mark.parametrize("split, genre, perturbation_pair", test_data)
 def test_determiner_swap_all_equivalent(split, genre, perturbation_pair):
@@ -258,7 +258,8 @@ if __name__ == "__main__":
     filter_function = PERTURBATIONS[args.perturbation_type]['filter_function']
     gpt2_tokenizer = PERTURBATIONS[args.perturbation_type]['gpt2_tokenizer']
     lang = args.lang
-
+    print(gpt2_tokenizer)
+    print(len(gpt2_tokenizer))
     if babylm_split == "test":
 
         # Iterate over files and do transform
@@ -337,7 +338,7 @@ if __name__ == "__main__":
 
                 # Print strings for unittest
                 new_lines_decoded = [gpt2_tokenizer.decode(
-                    [int(tok) for tok in line.split()]) + "\n" for line in new_lines]
+                    [int(tok) for tok in line.split()])[:1024] + "\n" for line in new_lines]
                 new_lines_with_strings = []
                 for tokens, line in list(zip(new_lines, new_lines_decoded)):
                     new_lines_with_strings.append(tokens)
