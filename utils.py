@@ -16,7 +16,6 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-LANG = 'TR'
 EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 57, 84]
@@ -35,7 +34,7 @@ GENRES = {
 }
 CHECKPOINT_WRITE_PATH = f"/{ROOT_PATH}/babylm_models"
 CHECKPOINT_READ_PATH = f"/{ROOT_PATH}/babylm_models"
-TOKENIZER_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/tokenizers/{LANG}"
+TOKENIZER_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/tokenizers"
 BABYLM_DATA_PATH = f"/{ROOT_PATH}/mission-impossible-language-models/data/multilingual/"
 MARKER_HOP_SING = "🅂"
 MARKER_HOP_PLUR = "🄿"
@@ -71,7 +70,7 @@ def write_file(directory, filename, lines):
 
 def get_gpt2_tokenizer_with_markers(marker_list, lang):
     if lang in ['EN', 'DE', 'RU','RO', 'TR']:
-        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
+        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH+'/'+lang)
     else:
         WarningMessage("You didn't specify a language yet, "
                        "so we use the English gpt2 tokenizer by default!")

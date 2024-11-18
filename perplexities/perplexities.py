@@ -8,7 +8,7 @@ sys.path.append("..")
 from transformers import GPT2LMHeadModel
 from gpt2_no_positional_encoding_model import GPT2NoPositionalEncodingLMHeadModel
 from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, BABYLM_DATA_PATH, \
-    PAREN_MODELS, gpt2_tokenizer_en, gpt2_tokenizer_de
+    PAREN_MODELS, TOKENIZATIONER
 from tqdm import tqdm
 from glob import glob
 from numpy.random import default_rng
@@ -18,7 +18,7 @@ import itertools
 import argparse
 import os
 
-gpt2_tokenizer = gpt2_tokenizer_de
+
 
 MAX_TRAINING_STEPS = 500
 CHECKPOINTS = list(range(0, MAX_TRAINING_STEPS+1, 50))
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                         nargs='?',
                         choices=list(PAREN_MODELS.keys()) + ["randinit"],
                         help='Parenthesis model')
-    parser.add_argument('vs', type=float, help='Vocabulary size')
+    parser.add_argument('vs', type=int, help='Vocabulary size')
     parser.add_argument('-np', '--no_pos_encodings', action='store_true',
                         help="Train GPT-2 with no positional encodings")
 
@@ -113,6 +113,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     no_pos_encodings_underscore = "_no_positional_encodings" if args.no_pos_encodings else ""
     vs = args.vs
+    la = args.train_set
+    gpt2_tokenizer = TOKENIZATIONER[la]['shuffle']
     # Get path to model
     model = f"{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}_seed{args.random_seed}"
     model_path = f"{CHECKPOINT_READ_PATH}/{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}/babylm_{model}/runs/{model}/checkpoint-"
