@@ -35,7 +35,7 @@ if __name__ =='__main__':
                         help='language for the experiment')
     
     parser.add_argument('size', 
-                        type=float,
+                        type=int,
                         help='the size of vocab')
     # Get args
     args = parser.parse_args()
@@ -43,7 +43,8 @@ if __name__ =='__main__':
     split = args.split
     text, vocab = collect_sents(language, split)
     size = args.size
-    vocab_size = int(size*len(vocab))
+    #vocab_size = int(size*len(vocab))
+    vocab_size = size
     old_tokenizer = AutoTokenizer.from_pretrained('gpt2')
     new_tokenizer = old_tokenizer.train_new_from_iterator(text, vocab_size)
     new_tokenizer.save_pretrained(f'tokenizers/{language}')
