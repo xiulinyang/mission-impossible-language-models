@@ -19,4 +19,4 @@ model:
     initial_weights: null
     
     # Configure Model From File
-    config_path:  /local/xiulyang/mission-impossible-language-models/mistral/conf/models/gpt2-small-39141.json
+    config_path:  /local/xiulyang/mission-impossible-language-models/mistral/conf/models/gpt2-small-30000.json

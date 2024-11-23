@@ -11,10 +11,11 @@ if [ -z "$LANGUAGE" ]; then
 	    LANGUAGE="EN"
 fi
 
-cd tokenizers
+# Navigate to the tokenizers directory and perform operations
+cd tokenizers/
+
 rm -rf $LANGUAGE
 cd ..
-# Navigate to the tokenizers directory and perform operations
 python train_tokenizer.py $LANGUAGE train $VOCAB
 
 cd data
@@ -32,7 +33,7 @@ python perturb.py shuffle_control_${LANGUAGE,,} $LANGUAGE test
 cd ..
 cd training
 
-bash prepare_training.sh shuffle_control_${LANGUAGE,,} $LANGUAGE 53 randinit
+bash prepare_training.sh shuffle_control_${LANGUAGE,,} $LANGUAGE 41 randinit
 
 cd ..
 cd mistral
@@ -42,9 +43,9 @@ source ~/.bashrc
 conda deactivate
 conda activate mistral
 
-CUDA_VISIBLE_DEVICES=$GPU python3 train.py --config conf/train_shuffle_control_${LANGUAGE,,}_${LANGUAGE}_randinit_seed53.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.warmup_steps 50 --training_arguments.max_steps 500
+CUDA_VISIBLE_DEVICES=$GPU python3 train.py --config conf/train_shuffle_control_${LANGUAGE,,}_${LANGUAGE}_randinit_seed41.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.warmup_steps 50 --training_arguments.max_steps 500
     
 cd ..
 cd perplexities
 conda activate mission
-CUDA_VISIBLE_DEVICES=5 python perplexities.py shuffle_control_${LANGUAGE,,} shuffle_control_${LANGUAGE,,} $LANGUAGE 53 randinit $VOCAB
+CUDA_VISIBLE_DEVICES=5 python perplexities.py shuffle_control_${LANGUAGE,,} shuffle_control_${LANGUAGE,,} $LANGUAGE 41 randinit $VOCAB
