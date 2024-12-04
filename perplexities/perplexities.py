@@ -8,7 +8,7 @@ sys.path.append("..")
 from transformers import GPT2LMHeadModel
 from gpt2_no_positional_encoding_model import GPT2NoPositionalEncodingLMHeadModel
 from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, BABYLM_DATA_PATH, \
-    PAREN_MODELS, TOKENIZATIONER
+    PAREN_MODELS, TOKENIZATIONER, EXP_LANGS
 from tqdm import tqdm
 from glob import glob
 from numpy.random import default_rng
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                         default='all',
                         const='all',
                         nargs='?',
-                        choices=["EN", "DE", "RU", "RO", "TR"],
+                        choices=EXP_LANGS,
                         help='BabyLM train set')
     parser.add_argument('random_seed', type=int, help="Random seed")
     parser.add_argument('paren_model',
