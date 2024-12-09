@@ -105,7 +105,7 @@ if __name__ == "__main__":
                         nargs='?',
                         choices=list(PAREN_MODELS.keys()) + ["randinit"],
                         help='Parenthesis model')
-    parser.add_argument('vs', type=int, help='Vocabulary size')
+    parser.add_argument('vs', help='Vocabulary size')
     parser.add_argument('-np', '--no_pos_encodings', action='store_true',
                         help="Train GPT-2 with no positional encodings")
 
