@@ -16,9 +16,9 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO']
+EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO','ES', 'FR', 'PL', 'PT', 'NL', 'IT', 'FR']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
-SEEDS = [21, 57, 84]
+SEEDS = [21, 53, 84]
 CHECKPOINTS = list(range(50, 501, 50))
 GENRES = {
     "aochildes": "CHILDES",
@@ -69,7 +69,7 @@ def write_file(directory, filename, lines):
 
 
 def get_gpt2_tokenizer_with_markers(marker_list, lang):
-    if lang in ['EN', 'DE', 'RU','RO', 'TR']:
+    if lang in ['EN', 'DE', 'RU','RO', 'TR','RO', 'ES', 'FR', 'PL', 'PT', 'NL', 'IT', 'FR']:
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH+'/'+lang)
     else:
         WarningMessage("You didn't specify a language yet, "
@@ -431,12 +431,14 @@ def perturb_shuffle_local(sent, seed, window, lang):
 def perturb_shuffle_even_odd(sent, lang):
     return __perturb_shuffle_even_odd(sent, lang)
 
-
-gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
+gpt2_tokenizer_es = get_gpt2_tokenizer_with_markers([], 'ES') 
+#gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
 gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([],'DE')
 gpt2_tokenizer_ru = get_gpt2_tokenizer_with_markers([],'RU')
 gpt2_tokenizer_ro = get_gpt2_tokenizer_with_markers([],'RO')
-gpt2_tokenizer_tr = get_gpt2_tokenizer_with_markers([],'TR')
+gpt2_tokenizer_tr = AutoTokenizer.from_pretrained("ytu-ce-cosmos/turkish-gpt2")
+gpt2_tokenizer_en = AutoTokenizer.from_pretrained("gpt2")
+#gpt2_tokenizer_tr = get_gpt2_tokenizer_with_markers([],'TR')
 # GPT-2 hop tokenization
 gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
    [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
@@ -467,6 +469,9 @@ gpt2_rev_tokenizer_tr = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'TR')
 gpt2_rev_tokenizer_ro = get_gpt2_tokenizer_with_markers(
    [MARKER_REV], 'RO')
+gpt2_hop_tokenizer_es = get_gpt2_tokenizer_with_markers([MARKER_HOP_SING, MARKER_HOP_PLUR],
+                                                            'ES')  # Spanish hop tokenizer
+gpt2_rev_tokenizer_es = get_gpt2_tokenizer_with_markers([MARKER_REV], 'ES')  
 # Get ids of marker tokens
 marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
    MARKER_REV]
@@ -492,7 +497,7 @@ bos_token_id = gpt2_det_tokenizer_en.get_added_vocab()[BOS_TOKEN]
 
 
 TOKENIZATIONER = {
-    "EN":{"shuffle": gpt2_tokenizer_en,
+    'EN':{"shuffle": gpt2_tokenizer_en,
           "hop": gpt2_hop_tokenizer_en,
           "reverse": gpt2_rev_tokenizer_en},
 "DE":{"shuffle": gpt2_tokenizer_de,
@@ -507,6 +512,9 @@ TOKENIZATIONER = {
 "RO":{"shuffle": gpt2_tokenizer_ro,
           "hop": gpt2_hop_tokenizer_ro,
           "reverse": gpt2_rev_tokenizer_ro},
+"ES": {"shuffle": gpt2_tokenizer_es,
+     "hop": gpt2_hop_tokenizer_es,
+    "reverse": gpt2_rev_tokenizer_es},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -533,7 +541,14 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
         "color": "#606060",
     },
-
+"shuffle_control_es": {
+            "perturbation_function": partial(perturb_shuffle_deterministic, lang='ES', seed=None, shuffle=False),
+            "lang": 'es',
+            "affect_function": affect_shuffle,
+            "filter_function": filter_shuffle,
+            "gpt2_tokenizer": TOKENIZATIONER['ES']['shuffle'],
+            "color": "#606060",
+        },
 "shuffle_control_ro": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='RO', seed=None, shuffle=False),
         "lang": 'ro',
