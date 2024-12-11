@@ -5,7 +5,7 @@ from collections import deque
 from string import punctuation
 from warnings import WarningMessage
 
-from transformers import AutoTokenizer, AddedToken
+from transformers import AutoTokenizer, AddedToken,GPT2LMHeadModel, GPT2Tokenizer,AutoTokenizer, AutoModel
 from functools import partial
 from numpy.random import default_rng
 from nltk.tree import ParentedTree
@@ -16,9 +16,9 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO']
+EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO','ES', 'FR', 'PL', 'PT', 'NL', 'IT', 'FR']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
-SEEDS = [21, 57, 84]
+SEEDS = [21, 53, 84]
 CHECKPOINTS = list(range(50, 501, 50))
 GENRES = {
     "aochildes": "CHILDES",
@@ -69,8 +69,8 @@ def write_file(directory, filename, lines):
 
 
 def get_gpt2_tokenizer_with_markers(marker_list, lang):
-    if lang in ['EN', 'DE', 'RU','RO', 'TR']:
-        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH+'/'+lang)
+    if lang in ['EN', 'DE', 'RU','RO', 'TR','RO', 'ES', 'FR', 'PL', 'PT', 'NL', 'IT', 'FR']:
+        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_DICT[lang])
     else:
         WarningMessage("You didn't specify a language yet, "
                        "so we use the English gpt2 tokenizer by default!")
@@ -431,57 +431,45 @@ def perturb_shuffle_local(sent, seed, window, lang):
 def perturb_shuffle_even_odd(sent, lang):
     return __perturb_shuffle_even_odd(sent, lang)
 
+TOKENIZER_DICT = {
+       "EN": "gpt2",
+       "DE": "dbmdz/german-gpt2",
+       "RU": "sberbank-ai/rugpt3large_based_on_gpt2",
+       "RO": "dumitrescustefan/gpt-neo-romanian-780m",
+       "TR": "ytu-ce-cosmos/turkish-gpt2",
+       "FR": "asi/gpt-fr-cased-base",
+       "NL": "yhavinga/gpt-neo-125M-dutch",
+       "IT": "LorenzoDeMattei/GePpeTto",
+       "PL":"flax-community/papuGaPT2",
 
+        }
+gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([], 'DE') 
 gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
-gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([],'DE')
-gpt2_tokenizer_ru = get_gpt2_tokenizer_with_markers([],'RU')
-gpt2_tokenizer_ro = get_gpt2_tokenizer_with_markers([],'RO')
 gpt2_tokenizer_tr = get_gpt2_tokenizer_with_markers([],'TR')
-# GPT-2 hop tokenization
+gpt2_tokenizer_ru = get_gpt2_tokenizer_with_markers([], 'RU')
+gpt2_tokenizer_ro = get_gpt2_tokenizer_with_markers([], 'RO')
+gpt2_tokenizer_fr = get_gpt2_tokenizer_with_markers([], 'FR') 
+
+
 gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
-   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
-gpt2_hop_tokenizer_de = get_gpt2_tokenizer_with_markers(
-   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'DE')
-gpt2_hop_tokenizer_ru = get_gpt2_tokenizer_with_markers(
-   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'RU')
-
-gpt2_hop_tokenizer_ro = get_gpt2_tokenizer_with_markers(
-   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'RO')
-gpt2_hop_tokenizer_tr = get_gpt2_tokenizer_with_markers(
-   [MARKER_HOP_SING, MARKER_HOP_PLUR], 'TR')
-# Get ids of marker tokens
-marker_sg_token = gpt2_hop_tokenizer_en.get_added_vocab()[
-   MARKER_HOP_SING]
-marker_pl_token = gpt2_hop_tokenizer_en.get_added_vocab()[
-   MARKER_HOP_PLUR]
-
-
-#GPT-2 reverse tokenization
+           [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
 gpt2_rev_tokenizer_en = get_gpt2_tokenizer_with_markers(
-   [MARKER_REV], 'EN')
-gpt2_rev_tokenizer_de = get_gpt2_tokenizer_with_markers(
-   [MARKER_REV], 'DE')
-gpt2_rev_tokenizer_ru = get_gpt2_tokenizer_with_markers(
-   [MARKER_REV], 'RU')
-gpt2_rev_tokenizer_tr = get_gpt2_tokenizer_with_markers(
-   [MARKER_REV], 'TR')
-gpt2_rev_tokenizer_ro = get_gpt2_tokenizer_with_markers(
-   [MARKER_REV], 'RO')
+           [MARKER_REV], 'EN')
 # Get ids of marker tokens
 marker_rev_token = gpt2_rev_tokenizer_en.get_added_vocab()[
-   MARKER_REV]
-
-# GPT-2 determiner tokenization
+           MARKER_REV]
 gpt2_det_tokenizer_en = get_gpt2_tokenizer_with_markers(
-   [BOS_TOKEN], 'EN')
-gpt2_det_tokenizer_de = get_gpt2_tokenizer_with_markers(
-   [BOS_TOKEN], 'DE')
-gpt2_det_tokenizer_ru = get_gpt2_tokenizer_with_markers(
-    [BOS_TOKEN], 'RU')
-gpt2_det_tokenizer_tr = get_gpt2_tokenizer_with_markers(
-    [BOS_TOKEN], 'TR')
-# Get id of BOS token
+           [BOS_TOKEN], 'EN')
+#GPT-2 reverse tokenization
+#gpt2_rev_tokenizer_es = get_gpt2_tokenizer_with_markers([MARKER_REV], 'ES')  
+# Get ids of marker tokens
 bos_token_id = gpt2_det_tokenizer_en.get_added_vocab()[BOS_TOKEN]
+marker_sg_token = gpt2_hop_tokenizer_en.get_added_vocab()[
+           MARKER_HOP_SING]
+marker_pl_token = gpt2_hop_tokenizer_en.get_added_vocab()[
+           MARKER_HOP_PLUR]
+# GPT-2 determiner tokenization
+# Get id of BOS token
 #gpt2_original_tokenizer = get_gpt2_tokenizer_with_markers([],)
 ##############################################################################
 # PERTURBATIONS
@@ -492,21 +480,12 @@ bos_token_id = gpt2_det_tokenizer_en.get_added_vocab()[BOS_TOKEN]
 
 
 TOKENIZATIONER = {
-    "EN":{"shuffle": gpt2_tokenizer_en,
-          "hop": gpt2_hop_tokenizer_en,
-          "reverse": gpt2_rev_tokenizer_en},
-"DE":{"shuffle": gpt2_tokenizer_de,
-          "hop": gpt2_hop_tokenizer_de,
-          "reverse": gpt2_rev_tokenizer_de},
-"RU":{"shuffle": gpt2_tokenizer_ru,
-          "hop": gpt2_hop_tokenizer_ru,
-          "reverse": gpt2_rev_tokenizer_ru},
-"TR":{"shuffle": gpt2_tokenizer_tr,
-          "hop": gpt2_hop_tokenizer_tr,
-          "reverse": gpt2_rev_tokenizer_tr},
-"RO":{"shuffle": gpt2_tokenizer_ro,
-          "hop": gpt2_hop_tokenizer_ro,
-          "reverse": gpt2_rev_tokenizer_ro},
+'EN':{"shuffle": gpt2_tokenizer_en},
+"DE":{"shuffle": gpt2_tokenizer_de},
+"RU":{"shuffle": gpt2_tokenizer_ru},
+"TR":{"shuffle": gpt2_tokenizer_tr},
+"RO":{"shuffle": gpt2_tokenizer_ro},
+"FR":{"shuffle": gpt2_tokenizer_fr},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -517,9 +496,17 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#606060",
     },
+    "shuffle_control_fr": {
+    "perturbation_function": partial(perturb_shuffle_deterministic, lang='FR', seed=None, shuffle=False),
+    "lang": 'fr',
+    "affect_function": affect_shuffle,
+    "filter_function": filter_shuffle,
+    "gpt2_tokenizer": TOKENIZATIONER['FR']['shuffle'],
+    "color": "#606060",
+                                                            },
 "shuffle_control_de": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='DE', seed=None, shuffle=False),
-        "lang": 'en',
+        "lang": 'de',
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['DE']['shuffle'],
@@ -527,13 +514,12 @@ PERTURBATIONS = {
     },
 "shuffle_control_tr": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='TR', seed=None, shuffle=False),
-        "lang": 'ro',
+        "lang": 'tr',
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
         "color": "#606060",
     },
-
 "shuffle_control_ro": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='RO', seed=None, shuffle=False),
         "lang": 'ro',

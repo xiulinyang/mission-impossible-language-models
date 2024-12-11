@@ -259,6 +259,8 @@ if __name__ == "__main__":
     gpt2_tokenizer = PERTURBATIONS[args.perturbation_type]['gpt2_tokenizer']
     lang = args.lang
     print(gpt2_tokenizer)
+    print(f'token id of end of text: ')
+    print(gpt2_tokenizer.encode('<|endoftext|>'))
     print(len(gpt2_tokenizer))
     if babylm_split == "test":
 
