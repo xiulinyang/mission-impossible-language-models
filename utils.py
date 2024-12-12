@@ -443,14 +443,20 @@ TOKENIZER_DICT = {
        "PL":"flax-community/papuGaPT2",
 
         }
+
+def test_tokenizer(tokenizer):
+    print(tokenizer)
+    print(tokenizer.encode('<|endoftext|>'))
 gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([], 'DE') 
 gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
 gpt2_tokenizer_tr = get_gpt2_tokenizer_with_markers([],'TR')
 gpt2_tokenizer_ru = get_gpt2_tokenizer_with_markers([], 'RU')
 gpt2_tokenizer_ro = get_gpt2_tokenizer_with_markers([], 'RO')
 gpt2_tokenizer_fr = get_gpt2_tokenizer_with_markers([], 'FR') 
+gpt2_tokenizer_nl = get_gpt2_tokenizer_with_markers([], 'NL')
 
 
+test_tokenizer(gpt2_tokenizer_ro)
 gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
            [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
 gpt2_rev_tokenizer_en = get_gpt2_tokenizer_with_markers(
@@ -486,6 +492,7 @@ TOKENIZATIONER = {
 "TR":{"shuffle": gpt2_tokenizer_tr},
 "RO":{"shuffle": gpt2_tokenizer_ro},
 "FR":{"shuffle": gpt2_tokenizer_fr},
+"NL":{"shuffle": gpt2_tokenizer_nl},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -512,6 +519,14 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['DE']['shuffle'],
         "color": "#606060",
     },
+"shuffle_control_nl": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='NL', seed=None, shuffle=False),
+        "lang": 'nl',
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['NL']['shuffle'],
+        "color": "#606060",
+        },
 "shuffle_control_tr": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='TR', seed=None, shuffle=False),
         "lang": 'tr',
