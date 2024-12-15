@@ -306,7 +306,7 @@ def __perturb_shuffle_deterministic(sent, seed, shuffle, lang):
         default_rng(seed).shuffle(tokens)
     return tokens
 
-def __perturb_shuffle_word_deterministic(sent, seed, shuffle, lang):
+def __perturb_shuffle_deterministic_word(sent, seed, shuffle, lang):
     tokenizer = TOKENIZATIONER[lang]['shuffle']
     tokens = sent["sent_text"].split()
     if shuffle:
@@ -447,6 +447,8 @@ def perturb_reverse(sent, rng, lang, reverse=True, full=False):
 def perturb_shuffle_deterministic(sent, lang, seed=None, shuffle=True):
     return __perturb_shuffle_deterministic(sent, seed, shuffle,lang)
 
+def perturb_shuffle_deterministic_word(sent, lang, seed=None, shuffle=True):
+    return __perturb_shuffle_deterministic_word(sent, seed, shuffle,lang)
 
 def perturb_shuffle_nondeterministic(sent, rng, lang):
     return __perturb_shuffle_nondeterministic(sent, rng, lang)
@@ -626,12 +628,12 @@ PERTURBATIONS = {
         "color": "#E8384F",
     },
  "shuffle_nondeterministic_tr": {
-                 "perturbation_function": partial(perturb_shuffle_nondeterministic, lang='TR', rng=default_rng(0)),
-                         "affect_function": affect_shuffle,
-                                 "filter_function": filter_shuffle,
-                                         "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
-                                                 "color": "#E8384F",
-                                                     },
+        "perturbation_function": partial(perturb_shuffle_nondeterministic, lang='TR', rng=default_rng(0)),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+            "color": "#E8384F",
+                },
     "shuffle_deterministic21_en": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='EN', seed=21, shuffle=True),
         "affect_function": affect_shuffle,
