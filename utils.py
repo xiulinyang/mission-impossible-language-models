@@ -16,7 +16,7 @@ import torch
 # CONSTANTS
 ##############################################################################
 ROOT_PATH = '/local/xiulyang'
-EXP_LANGS = ['EN', 'DE', 'RU', 'TR', 'RO','ES', 'FR', 'PL', 'PT', 'NL', 'IT', 'FR']
+EXP_LANGS = ['EN', 'DE', 'AR', 'ZH', 'RU', 'TR', 'RO','ES', 'FR', 'PL', 'PT', 'NL', 'IT', 'FR']
 BABYLM_SPLITS = ["train", 'dev', 'test', 'unittest']
 SEEDS = [21, 53, 84]
 CHECKPOINTS = list(range(50, 501, 50))
@@ -69,7 +69,7 @@ def write_file(directory, filename, lines):
 
 
 def get_gpt2_tokenizer_with_markers(marker_list, lang):
-    if lang in ['EN', 'DE', 'RU','RO', 'TR','RO', 'ES', 'FR', 'PL', 'PT', 'NL', 'IT', 'FR']:
+    if lang in EXP_LANGS:    
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_DICT[lang])
     else:
         WarningMessage("You didn't specify a language yet, "
@@ -297,9 +297,21 @@ def __perturb_reverse(sent, rng, reverse, full, lang):
 def __perturb_shuffle_deterministic(sent, seed, shuffle, lang):
     # Get sentence text and GPT-2 tokens
     tokenizer = TOKENIZATIONER[lang]['shuffle']
-    tokens = tokenizer.encode(sent["sent_text"])
+    if lang=='ZH':
+        sent_text = ''.join(sent["sent_text"].split())
+        tokens = tokenizer.encode(sent_text)
+    else:
+        tokens = tokenizer.encode(sent["sent_text"])
     if shuffle:
         default_rng(seed).shuffle(tokens)
+    return tokens
+
+def __perturb_shuffle_word_deterministic(sent, seed, shuffle, lang):
+    tokenizer = TOKENIZATIONER[lang]['shuffle']
+    tokens = sent["sent_text"].split()
+    if shuffle:
+        default_rng(seed).shuffle(tokens)
+        tokens = tokenizer.encode(' '.join(tokens))
     return tokens
 
 
@@ -314,7 +326,11 @@ def __perturb_shuffle_nondeterministic(sent, rng, lang):
 def __perturb_shuffle_local(sent, seed, lang, window=5):
     # Get sentence text and GPT-2 tokens
     tokenizer = TOKENIZATIONER[lang]['shuffle']
-    tokens = tokenizer.encode(sent["sent_text"])
+    if lang =='ZH':
+        sent_text = ''.join(sent['sent_text'].split())
+        tokens = tokenizer.encode(sent_text)
+    else:
+        tokens = tokenizer.encode(sent["sent_text"])
 
     # Shuffle tokens in batches of size window
     shuffled_tokens = []
@@ -325,6 +341,18 @@ def __perturb_shuffle_local(sent, seed, lang, window=5):
 
     return shuffled_tokens
 
+
+def __perturb_shuffle_local_word(sent, seed, lang, window=5):
+    tokenizer = TOKENIZATIONER[lang]['shuffle']
+    tokens = sent['sent_text'].split()
+
+    shuffled_tokens = []
+    for i in range(0, len(tokens), window):
+        batch = tokens[i:i+window].copy()  
+        default_rng(seed).shuffle(batch) 
+        shuffled_tokens += batch
+    shuffled_words = tokenizer.encode(' '.join(shuffled_tokens))
+    return shuffled_words
 
 def __perturb_shuffle_even_odd(sent, lang):
     # Get sentence text and GPT-2 tokens
@@ -427,6 +455,9 @@ def perturb_shuffle_nondeterministic(sent, rng, lang):
 def perturb_shuffle_local(sent, seed, window, lang):
     return __perturb_shuffle_local(sent, seed, lang, window)
 
+def perturb_shuffle_local_word(sent, seed, window, lang):
+    return __perturb_shuffle_local_word(sent, seed, lang, window)
+
 
 def perturb_shuffle_even_odd(sent, lang):
     return __perturb_shuffle_even_odd(sent, lang)
@@ -437,15 +468,17 @@ TOKENIZER_DICT = {
        "RU": "sberbank-ai/rugpt3large_based_on_gpt2",
        "RO": "dumitrescustefan/gpt-neo-romanian-780m",
        "TR": "ytu-ce-cosmos/turkish-gpt2",
-       "FR": "asi/gpt-fr-cased-base",
+       "FR": "Cedille/fr-boris",
        "NL": "yhavinga/gpt-neo-125M-dutch",
-       "IT": "LorenzoDeMattei/GePpeTto",
+       "IT": "iGeniusAI/Italia-9B-Instruct-v0.1",
        "PL":"flax-community/papuGaPT2",
-
+       "ZH": "hfl/chinese-bert-wwm",
         }
 
 def test_tokenizer(tokenizer):
     print(tokenizer)
+    print('a')
+    print(len(tokenizer))
     print(tokenizer.encode('<|endoftext|>'))
 gpt2_tokenizer_de = get_gpt2_tokenizer_with_markers([], 'DE') 
 gpt2_tokenizer_en = get_gpt2_tokenizer_with_markers([],'EN')
@@ -454,9 +487,10 @@ gpt2_tokenizer_ru = get_gpt2_tokenizer_with_markers([], 'RU')
 gpt2_tokenizer_ro = get_gpt2_tokenizer_with_markers([], 'RO')
 gpt2_tokenizer_fr = get_gpt2_tokenizer_with_markers([], 'FR') 
 gpt2_tokenizer_nl = get_gpt2_tokenizer_with_markers([], 'NL')
-
-
-test_tokenizer(gpt2_tokenizer_ro)
+gpt2_tokenizer_pl = get_gpt2_tokenizer_with_markers([], 'PL')
+gpt2_tokenizer_it = get_gpt2_tokenizer_with_markers([], 'IT')
+gpt2_tokenizer_zh = get_gpt2_tokenizer_with_markers([], 'ZH')
+test_tokenizer(gpt2_tokenizer_zh)
 gpt2_hop_tokenizer_en = get_gpt2_tokenizer_with_markers(
            [MARKER_HOP_SING, MARKER_HOP_PLUR], 'EN')
 gpt2_rev_tokenizer_en = get_gpt2_tokenizer_with_markers(
@@ -493,6 +527,9 @@ TOKENIZATIONER = {
 "RO":{"shuffle": gpt2_tokenizer_ro},
 "FR":{"shuffle": gpt2_tokenizer_fr},
 "NL":{"shuffle": gpt2_tokenizer_nl},
+"IT":{"shuffle": gpt2_tokenizer_it},
+"ZH":{"shuffle": gpt2_tokenizer_zh},
+"PL":{"shuffle": gpt2_tokenizer_pl},
 }
 PERTURBATIONS = {
     "shuffle_control_en": {
@@ -527,12 +564,28 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['NL']['shuffle'],
         "color": "#606060",
         },
+"shuffle_control_it": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='IT', seed=None, shuffle=False),
+         "lang": 'it',
+         "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['IT']['shuffle'],
+         "color": "#606060",
+                },
 "shuffle_control_tr": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='TR', seed=None, shuffle=False),
         "lang": 'tr',
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+        "color": "#606060",
+    },
+"shuffle_control_zh": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='ZH', seed=None, shuffle=False),
+        "lang": 'zh',
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['ZH']['shuffle'],
         "color": "#606060",
     },
 "shuffle_control_ro": {
@@ -565,12 +618,33 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#E8384F",
     },
+  "shuffle_nondeterministic_tr": {
+        "perturbation_function": partial(perturb_shuffle_nondeterministic, lang='TR', rng=default_rng(0)),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+        "color": "#E8384F",
+    },
+ "shuffle_nondeterministic_tr": {
+                 "perturbation_function": partial(perturb_shuffle_nondeterministic, lang='TR', rng=default_rng(0)),
+                         "affect_function": affect_shuffle,
+                                 "filter_function": filter_shuffle,
+                                         "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+                                                 "color": "#E8384F",
+                                                     },
     "shuffle_deterministic21_en": {
         "perturbation_function": partial(perturb_shuffle_deterministic, lang='EN', seed=21, shuffle=True),
         "affect_function": affect_shuffle,
         "filter_function": filter_shuffle,
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#FFB000",
+    },
+        "shuffle_deterministic21_tr": {
+            "perturbation_function": partial(perturb_shuffle_deterministic, lang='TR', seed=21, shuffle=True),
+            "affect_function": affect_shuffle,
+            "filter_function": filter_shuffle,
+            "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+             "color": "#FFB000",
     },
 
     "shuffle_deterministic57_en": {
@@ -587,6 +661,29 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#62BB35",
     },
+
+    "shuffle_deterministic57_tr": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='TR',seed=57, shuffle=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer":TOKENIZATIONER['TR']['shuffle'],
+        "color": "#8db000",
+                                                          },
+
+      "shuffle_deterministic21_word_tr": {
+        "perturbation_function": partial(perturb_shuffle_deterministic_word, lang='TR',seed=21, shuffle=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer":TOKENIZATIONER['TR']['shuffle'],
+        "color": "#8db000",
+                                                          },
+     "shuffle_deterministic84_tr": {
+        "perturbation_function": partial(perturb_shuffle_deterministic, lang='TR',seed=84, shuffle=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+            "color": "#62BB35",
+                                                              },
     "shuffle_local5_en": {
         "perturbation_function": partial(perturb_shuffle_local, lang='EN',seed=0, window=5),
         "affect_function": affect_shuffle,
@@ -608,6 +705,41 @@ PERTURBATIONS = {
         "gpt2_tokenizer": TOKENIZATIONER['EN']['shuffle'],
         "color": "#E37CFF",
     },
+
+    "shuffle_local5_tr": {
+        "perturbation_function": partial(perturb_shuffle_local, lang='TR',seed=0, window=5),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer":TOKENIZATIONER['TR']['shuffle'],
+         "color": "#4178BC",
+                                                            },
+    "shuffle_local10_tr": {
+        "perturbation_function": partial(perturb_shuffle_local, lang='TR',seed=0, window=10),
+         "affect_function": affect_shuffle,
+         "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+         "color": "#AA71FF",
+                             },
+        "shuffle_even_odd_tr": {
+        "perturbation_function": partial(perturb_shuffle_even_odd, lang='TR'),
+        "affect_function": affect_shuffle,
+         "filter_function": filter_shuffle,
+        "gpt2_tokenizer": TOKENIZATIONER['TR']['shuffle'],
+        "color": "#E37CFF",},
+        "shuffle_local3_tr": {
+        "perturbation_function": partial(perturb_shuffle_local, lang='TR',seed=0, window=3),
+         "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+          "gpt2_tokenizer":TOKENIZATIONER['TR']['shuffle'],
+         "color": "#4178BC",},
+
+        "shuffle_local3_word_tr": {
+         "perturbation_function": partial(perturb_shuffle_local_word, lang='TR',seed=0, window=3),
+         "affect_function": affect_shuffle,
+         "filter_function": filter_shuffle,
+        "gpt2_tokenizer":TOKENIZATIONER['TR']['shuffle'],
+         "color": "#4178BC",},
+                                                                                                                     
     # "reverse_control": {
     #     "perturbation_function": partial(perturb_reverse, rng=default_rng(21), reverse=False, full=False),
     #     "affect_function": affect_reverse,
