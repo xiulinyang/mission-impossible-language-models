@@ -253,7 +253,7 @@ if __name__ == "__main__":
             # Extract surprisals for target token
             for marker_seq, nomarker_seq, idx in \
                     zip(marker_surprisal_sequences, nomarker_surprisal_sequences, targets_batch):
-                marker_token_surprisals.append(marker_seq[idx])
+                marker_token_surprisals.append(marker_seq)
                 nomarker_token_surprisals.append(nomarker_seq[idx])
 
         # Add surprisals to df
