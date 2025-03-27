@@ -1,6 +1,6 @@
 # utils.py
 # Author: Julie Kallini
-
+# Reviser: Xiutian 2025/MAR/24 VERSION
 from collections import deque
 from string import punctuation
 from transformers import AutoTokenizer, AddedToken
@@ -30,13 +30,14 @@ GENRES = {
     "switchboard": "Switchboard Dialog Act Corpus",
     "wikipedia": "Wikipedia"
 }
-CHECKPOINT_WRITE_PATH = "/nlp/scr3/nlp/llms-in-llms/babylm_models"
-CHECKPOINT_READ_PATH = "/nlp/scr3/nlp/llms-in-llms/babylm_models"
-BABYLM_DATA_PATH = "/nlp/scr3/nlp/llms-in-llms/babylm_data"
+CHECKPOINT_WRITE_PATH = "/scratch/xiulyang/babylm_models"
+CHECKPOINT_READ_PATH = "/scratch/xiulyang/babylm_models"
+BABYLM_DATA_PATH = "/scratch/xiulyang/mission-impossible-language-models/"
 MARKER_HOP_SING = "🅂"
 MARKER_HOP_PLUR = "🄿"
 MARKER_REV = "🅁"
 BOS_TOKEN = "<BOS_TOKEN>"
+# MARKER_ANCHOR = "🄎"
 PART_TOKENS = set(["n't", "'ll", "'s", "'re", "'ve", "'m"])
 PUNCT_TOKENS = set(punctuation)
 
@@ -106,8 +107,15 @@ gpt2_det_tokenizer = get_gpt2_tokenizer_with_markers(
 # Get id of BOS token
 bos_token_id = gpt2_det_tokenizer.get_added_vocab()[BOS_TOKEN]
 
+# ADDED NEW TOKENIZER
+# GPT-2 circular tokenization
+# gpt2_hop_tokenizer = get_gpt2_tokenizer_with_markers(
+#     [MARKER_ANCHOR])
+# # Get ids of marker tokens
+# marker_sg_token = gpt2_hop_tokenizer.get_added_vocab()[
+#     MARKER_ANCHOR]
 
-MARKER_TOKEN_IDS = [marker_sg_token, marker_pl_token, marker_rev_token]
+MARKER_TOKEN_IDS = [marker_sg_token, marker_pl_token, marker_rev_token,]
 
 
 def compute_surprisals(model, input_ids):
@@ -340,7 +348,6 @@ def __perturb_shuffle_local(sent, seed, window=5):
 
     return shuffled_tokens
 
-
 def __perturb_shuffle_even_odd(sent):
     # Get sentence text and GPT-2 tokens
     tokens = gpt2_original_tokenizer.encode(sent["sent_text"])
@@ -348,12 +355,251 @@ def __perturb_shuffle_even_odd(sent):
     odd = [tok for i, tok in enumerate(tokens) if i % 2 != 0]
     return even + odd
 
+#****************************************************************************#
+# EXTENDED HELPER FUNCTIONS FOR PERMUTATIONS
+
+# Circular language unwrapping
+# M1/M5 non-deterministic unwrap of a circular language
+def __perturb_circular_unwrap_nondeterministic(sent, rng, anchor, reverse):
+    """
+    Unwraps a circular text by rotating the tokens either in forward or reverse order.
+
+    Args:
+        sent (dict): A dictionary containing the key "sent_text" with the sentence.
+        rng (random.Random): A random number generator for deterministic randomness.
+        anchor (bool): If True, insert a special token marker_sg_token relative to the original token list.
+            - In forward rotation (reverse=False), marker_sg_token is placed immediately before the original first token.
+            - In reverse rotation (reverse=True), marker_sg_token is placed immediately after the original first token.
+        reverse (bool): If True, perform reverse rotation (reading tokens backwards) starting at a random index.
+
+    Returns:
+        List: The list of tokens after unwrapping (and anchoring, if specified).
+    """
+    # Get sentence text and GPT-2 tokens
+    tokens = gpt2_hop_tokenizer.encode(sent["sent_text"])
+
+    # If the token list is empty, return it immediately.
+    if not tokens:
+        return tokens
+
+    n = len(tokens)
+    # Randomly select a starting index within the token list.
+    start_index = rng.choice(n)
+
+    if not reverse:
+        # Basic (forward) rotation: tokens are re-ordered starting at start_index.
+        rotated = tokens[start_index:] + tokens[:start_index]
+        if anchor:
+            # Determine where the original first token (tokens[0]) is in the rotated list.
+            # If start_index is 0, the token is at the beginning.
+            if start_index == 0:
+                rotated = [marker_sg_token] + rotated
+            else:
+                # The original first token appears at index len(tokens[start_index:]) in the rotated list.
+                pos = len(tokens[start_index:])
+                rotated = rotated[:pos] + [marker_sg_token] + rotated[pos:]
+    else:
+        # Reverse rotation: read tokens backwards starting from start_index.
+        rotated = [tokens[(start_index - i) % n] for i in range(n)]
+        if anchor:
+            # In reverse rotation, the original starting token (tokens[start_index]) appears as the first element.
+            # Insert marker_sg_token immediately after it.
+            pos = start_index
+            rotated = rotated[:pos + 1] + [marker_sg_token] + rotated[pos + 1:]
+    return rotated
+
+
+# M2/M6 deterministic unwrap of a circular language
+def __perturb_circular_unwrap_deterministic(sent, cir_start, anchor, reverse):
+    # Encode the sentence into GPT-2 tokens.
+    tokens = gpt2_hop_tokenizer.encode(sent["sent_text"])
+    if not tokens:
+        return tokens
+
+    # Validate that c is within the allowed range [0, 1].
+    if not (0 <= cir_start <= 1):
+        raise ValueError("c must be a float between 0 and 1")
+
+    n = len(tokens)
+    # Calculate the start index based on c.
+    # When c = 0, start_index = 0; when c = 1, start_index becomes n (so we adjust to n-1).
+    start_index = int(cir_start * n)
+    if start_index >= n:
+        start_index = n - 1
+
+    if not reverse:
+        # Basic (forward) rotation: tokens are re-ordered starting at start_index.
+        rotated = tokens[start_index:] + tokens[:start_index]
+        if anchor:
+            # Determine where the original first token (tokens[0]) is in the rotated list.
+            # If start_index is 0, the token is at the beginning.
+            if start_index == 0:
+                rotated = [marker_sg_token] + rotated
+            else:
+                # The original first token appears at index len(tokens[start_index:]) in the rotated list.
+                pos = len(tokens[start_index:])
+                rotated = rotated[:pos] + [marker_sg_token] + rotated[pos:]
+    else:
+        # Reverse rotation: read tokens backwards starting from start_index.
+        rotated = [tokens[(start_index - i) % n] for i in range(n)]
+        if anchor:
+            # In reverse rotation, the original starting token (tokens[start_index]) appears as the first element.
+            # Insert marker_sg_token immediately after it.
+            pos = start_index
+            rotated = rotated[:pos + 1] + [marker_sg_token] + rotated[pos + 1:]
+    return rotated
+
+# M3/M7 deterministic unwrap of a circular language
+# helper function
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def __perturb_circular_unwrap_step(sent, cir_start, rng, anchor, reverse):
+    """
+    Unwraps a circular text using modular skipping with a fixed step size.
+
+    The step size is chosen deterministically as the smallest integer greater than 1 
+    that is co-prime with the number of tokens (n). This guarantees that every token is included.
+
+    Args:
+        sent (dict): A dictionary with the key "sent_text" containing the sentence.
+        rng (random.Random): A random number generator (used for choosing the start index).
+        anchor (bool): If True, insert a special token marker_sg_token to mark the original first token.
+                       In forward order, marker_sg_token is inserted immediately before the token originally at index 0.
+                       In reverse order, marker_sg_token is inserted immediately after that token.
+        reverse (bool): If True, traverse tokens in reverse order using a negative step.
+
+    Returns:
+        List: The list of tokens after performing the modular skipping unwrap (with anchoring if specified).
+    """
+    # Encode the sentence into GPT-2 tokens.
+    tokens = gpt2_hop_tokenizer.encode(sent["sent_text"])
+    if not tokens:
+        return tokens
+
+    n = len(tokens)
+    # Calculate the start index based on c.
+    if cir_start == 0:
+        start_index = 0
+    else:
+        start_index = rng.choice(n)
+
+    # Choose the smallest step size greater than 1 that is co-prime with n.
+    step = None
+    for candidate in range(2, n):
+        if gcd(candidate, n) == 1:
+            step = candidate
+            break
+    if step is None:
+        # Fallback to step 1 if no candidate >1 is found.
+        step = 1
+
+    if not reverse:
+        # Forward order: indices are (start_index + i * step) mod n for i in 0...n-1.
+        order = [(start_index + i * step) % n for i in range(n)]
+        # Find the position in the ordering where the original first token (index 0) occurs.
+        pos = None
+        for i, idx in enumerate(order):
+            if idx == 0:
+                pos = i
+                break
+        result = [tokens[idx] for idx in order]
+        if anchor and pos is not None:
+            # Insert marker_sg_token immediately before the token that came from the original first position.
+            result = result[:pos] + [marker_sg_token] + result[pos:]
+    else:
+        # Reverse order: indices are (start_index - i * step) mod n for i in 0...n-1.
+        order = [(start_index - i * step) % n for i in range(n)]
+        pos = None
+        for i, idx in enumerate(order):
+            if idx == 0:
+                pos = i
+                break
+        result = [tokens[idx] for idx in order]
+        if anchor and pos is not None:
+            # In reverse order, insert marker_sg_token immediately after the token from the original first position.
+            result = result[:pos + 1] + [marker_sg_token] + result[pos + 1:]
+    return result
+
+
+# M4/M8 deterministic unwrap of a circular language
+def __perturb_circular_unwrap_bidirectional(sent, cir_start, rng, anchor, reverse):
+    # Encode the sentence into GPT-2 tokens.
+    tokens = gpt2_hop_tokenizer.encode(sent["sent_text"])
+    if not tokens:
+        return tokens
+
+    n = len(tokens)
+    # Calculate the start index based on c.
+    if cir_start == 0:
+        start_index = 0
+    else:
+        start_index = rng.choice(n)
+
+    # Create a list of tuples: (original_index, token)
+    tagged_tokens = list(enumerate(tokens))
+
+    # Initialize the result with the starting token.
+    result = [tagged_tokens[start_index]]
+
+    # Set up left and right pointers.
+    left = start_index - 1
+    right = start_index + 1
+
+    # Alternate selection until all tokens are included.
+    while len(result) < n:
+        if not reverse:
+            # Forward alternation: choose from right then left.
+            if len(result) < n:
+                if right >= n:
+                    right = 0
+                result.append(tagged_tokens[right])
+                right += 1
+            if len(result) < n:
+                if left < 0:
+                    left = n - 1
+                result.append(tagged_tokens[left])
+                left -= 1
+        else:
+            # Reverse alternation: choose from left then right.
+            if len(result) < n:
+                if left < 0:
+                    left = n - 1
+                result.append(tagged_tokens[left])
+                left -= 1
+            if len(result) < n:
+                if right >= n:
+                    right = 0
+                result.append(tagged_tokens[right])
+                right += 1
+
+    # Insert the anchor marker_sg_token relative to the token originally at index 0.
+    if anchor:
+        # Find the position of the token that originally came from index 0.
+        for pos, (orig_idx, token) in enumerate(result):
+            if orig_idx == 0:
+                break
+        if not reverse:
+            # In forward order, insert marker_sg_token immediately before the token from original index 0.
+            result = result[:pos] + [("anchor", marker_sg_token)] + result[pos:]
+        else:
+            # In reverse order, insert marker_sg_token immediately after the token from original index 0.
+            result = result[:pos + 1] + [("anchor", marker_sg_token)] + result[pos + 1:]
+
+    # Return just the tokens, dropping the original index tags.
+    unwrapped = [t[1] for t in result]
+    return unwrapped
+
+#****************************************************************************#
+
 
 ##############################################################################
 # AFFECT FUNCTIONS
 # These functions define when a perturbation has been applied to a sentence
 # not. This is used for identifying which test sentences have been
-# altered to separate affected vs. unaffected senences. Affect functions are
+# altered to separate affected vs. unaffected sentences. Affect functions are
 # functions of the input sentence object and return a boolean.
 ##############################################################################
 
@@ -361,7 +607,6 @@ def __perturb_shuffle_even_odd(sent):
 def affect_hop(sent):
     return any([__affect_hop_word(word) for word in sent['word_annotations']]) \
         and sent["constituency_parse"] is not None
-
 
 def affect_reverse(sent):
     return True
@@ -374,6 +619,11 @@ def affect_shuffle(sent):
 def affect_none(sent):
     return False
 
+#****************************************************************************#
+# EXPANDED AFFECT FUNCTIONS
+def affect_circular(sent):
+    return True
+#****************************************************************************#
 
 ##############################################################################
 # FILTER FUNCTIONS
@@ -402,6 +652,13 @@ def filter_shuffle(sent):
 
 def filter_none(sent):
     return False
+
+#****************************************************************************#
+# EXPANDED FILTER FUNCTIONS
+def filter_circular(sent):
+    tokens = gpt2_hop_tokenizer.encode(sent["sent_text"])
+    return len(tokens) > 1 and len(tokens) <= 350
+#****************************************************************************#
 
 
 ##############################################################################
@@ -443,6 +700,23 @@ def perturb_shuffle_local(sent, seed, window):
 
 def perturb_shuffle_even_odd(sent):
     return __perturb_shuffle_even_odd(sent)
+
+#****************************************************************************#
+# EXPANDED PERTURBATION FUNCTIONS
+
+def perturb_circular_unwrap_nondeterministic(sent, rng, anchor=False, reverse=False):
+    return __perturb_circular_unwrap_nondeterministic(sent, rng, anchor, reverse)
+
+def perturb_circular_unwrap_deterministic(sent, cir_start, anchor=False, reverse=False):
+    return __perturb_circular_unwrap_deterministic(sent, cir_start, anchor, reverse)
+
+def perturb_circular_unwrap_step(sent, cir_start, rng, anchor=False, reverse=False):
+    return __perturb_circular_unwrap_step(sent, cir_start, rng, anchor, reverse)
+
+def perturb_circular_unwrap_bidirectional(sent, cir_start, rng, anchor=False, reverse=False):
+    return __perturb_circular_unwrap_bidirectional(sent, cir_start, rng, anchor, reverse)
+
+#****************************************************************************#
 
 
 ##############################################################################
@@ -559,4 +833,70 @@ PERTURBATIONS = {
         "gpt2_tokenizer": gpt2_hop_tokenizer,
         "color": "#03a0ff",
     },
+    ##############################################################################
+    # CIRCULAR PERTURBATIONS
+    # NM1, control, anchor, one-step, clockwise (0, 1, cw)
+    "unwrap_control": {
+        "perturbation_function": partial(perturb_circular_unwrap_deterministic, cir_start=0, anchor=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": gpt2_hop_tokenizer,
+        "color": "#606060", # GREY
+    },
+    # NM2, random start (rand, 1, cw)
+    "unwrap_randomstart": {
+        "perturbation_function": partial(perturb_circular_unwrap_nondeterministic, rng=default_rng(0), anchor=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": gpt2_hop_tokenizer,
+        "color": "#E8384F", # RED
+    },
+    # NM3, AP (0.5, 1, cw)
+    "unwrap_ap": {
+        "perturbation_function": partial(perturb_circular_unwrap_deterministic, cir_start=0.5, anchor=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": gpt2_hop_tokenizer,
+        "color": "#fa8128",  # Coral
+    },
+    # NM4 MCP (0, mcp, cw)
+    "unwrap_minicp": {
+        "perturbation_function": partial(perturb_circular_unwrap_step, cir_start=0, rng=default_rng(0), anchor=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": gpt2_hop_tokenizer,
+        "color": "#304c7a",  # Navy
+    },
+    # NM5 ACW (0, 1, acw)
+    "unwrap_acw": {
+        "perturbation_function": partial(perturb_circular_unwrap_deterministic, cir_start=0, anchor=True,
+                                         reverse=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": gpt2_hop_tokenizer,
+        "color": "#304c7a",  # Navy
+    },
+    # NM6, BI_CW  (0, 1, bi_cw)
+    "unwrap_al_cw": {
+        "perturbation_function": partial(perturb_circular_unwrap_bidirectional, cir_start=0, rng=default_rng(0),
+                                         anchor=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": gpt2_hop_tokenizer,
+        "color": "#558e00",  # Green
+    },
+    # NM7 BI_ACW (0, 1, bi_acw)
+    "unwrap_al_acw": {
+        "perturbation_function": partial(perturb_circular_unwrap_bidirectional, cir_start=0, rng=default_rng(0),
+                                         anchor=True,
+                                         reverse=True),
+        "affect_function": affect_shuffle,
+        "filter_function": filter_shuffle,
+        "gpt2_tokenizer": gpt2_hop_tokenizer,
+        "color": "#AA71FF",  # Purple
+    },
+
+    ##############################################################################
+
 }
+
