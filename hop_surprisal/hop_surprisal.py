@@ -23,6 +23,74 @@ from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, PAREN_MODELS, \
 MAX_TRAINING_STEPS = 3000
 CHECKPOINTS = list(range(100, MAX_TRAINING_STEPS+1, 100))
 
+def compute_anchor_surprisal(model, input_ids, reverse=False):
+    """
+    Computes the surprisal (negative log2 probability) for a target token relative to the <anchor> token.
+
+    In non-reverse mode (reverse=False):
+      - Assumes <anchor> is placed before the original first token.
+      - Computes the surprisal for the token immediately following the anchor.
+
+    In reverse mode (reverse=True):
+      - Assumes <anchor> is placed immediately after the original first token.
+      - Computes the surprisal for the <anchor> token itself, using the logits from the token preceding it.
+
+    Parameters:
+      model: The language model.
+      input_ids: A tensor of token ids (shape: [batch_size, sequence_length]).
+      anchor_token_id: The integer id representing the '<anchor>' token.
+      reverse: Boolean flag indicating which configuration to use.
+
+    Returns:
+      A list of surprisal values (negative log2 probabilities) for the target token in each sequence.
+      If the expected token (or the preceding token in reverse mode) is missing, returns None for that sequence.
+    """
+    anchor_token_id = marker_sg_token
+    with torch.no_grad():
+        outputs = model(input_ids)
+        logits = outputs.logits  # shape: [batch_size, seq_len, vocab_size]
+        batch_surprisals = []
+
+        for i in range(input_ids.shape[0]):
+            sequence = input_ids[i]
+            # Locate the first occurrence of the <anchor> token in the sequence
+            anchor_positions = (sequence == anchor_token_id).nonzero(as_tuple=False)
+            if anchor_positions.numel() == 0:
+                # No anchor token found in this sequence
+                batch_surprisals.append(None)
+                continue
+
+            anchor_index = anchor_positions[0].item()
+
+            if not reverse:
+                # Non-reverse: <anchor> comes before the original first token.
+                target_index = anchor_index + 1
+                if target_index >= sequence.size(0):
+                    # No token follows the anchor.
+                    batch_surprisals.append(None)
+                    continue
+                target_token_id = sequence[target_index]
+                # Logits at anchor_index predict the token at anchor_index+1.
+                token_logits = logits[i, anchor_index]
+            else:
+                # Reverse: <anchor> is placed right after the original first token.
+                # Here, the target is the <anchor> token at anchor_index,
+                # but its prediction comes from the logits at anchor_index-1.
+                if anchor_index == 0:
+                    # Cannot compute surprisal if <anchor> is the first token.
+                    batch_surprisals.append(None)
+                    continue
+                target_index = anchor_index  # The <anchor> token itself.
+                target_token_id = sequence[target_index]
+                token_logits = logits[i, anchor_index - 1]
+
+            # Convert logits to a probability distribution and then to log probabilities (base 2).
+            log_probs = torch.log2(torch.nn.functional.softmax(token_logits, dim=-1))
+            surprisal = -log_probs[target_token_id].item()
+            batch_surprisals.append(surprisal)
+
+        return batch_surprisals
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
@@ -165,10 +233,22 @@ if __name__ == "__main__":
             targets_batch = target_indices[i:i+BATCH_SIZE]
 
             # Compute marker/nomarker surprisals for batches
-            marker_surprisal_sequences = compute_surprisals(
-                model, marker_batch_tensors)
-            nomarker_surprisal_sequences = compute_surprisals(
-                model, nomarker_batch_tensors)
+            # marker_surprisal_sequences = compute_surprisals(
+            #     model, marker_batch_tensors)
+            # nomarker_surprisal_sequences = compute_surprisals(
+            #     model, nomarker_batch_tensors)
+
+            # UPDATED Compute marker/nomarker surprisals for batches
+            if 'acw' in args.perturbation_type:
+                marker_surprisal_sequences = compute_anchor_surprisal(
+                    model, marker_batch_tensors, reverse=True)
+                nomarker_surprisal_sequences = compute_surprisals(
+                    model, nomarker_batch_tensors)
+            else:
+                marker_surprisal_sequences = compute_anchor_surprisal(
+                    model, marker_batch_tensors)
+                nomarker_surprisal_sequences = compute_surprisals(
+                    model, nomarker_batch_tensors)
 
             # Extract surprisals for target token
             for marker_seq, nomarker_seq, idx in \
