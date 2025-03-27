@@ -20,7 +20,7 @@ from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, PAREN_MODELS, \
     marker_sg_token, marker_pl_token, compute_surprisals
 
 
-MAX_TRAINING_STEPS = 3000
+MAX_TRAINING_STEPS = 1200
 CHECKPOINTS = list(range(100, MAX_TRAINING_STEPS+1, 100))
 
 if __name__ == "__main__":
@@ -54,9 +54,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     no_pos_encodings_underscore = "_no_positional_encodings" if args.no_pos_encodings else ""
 
-    if "hop" not in args.perturbation_type:
-        raise Exception(
-            "'{args.perturbation_type}' is not a valid hop perturbation")
 
     # Get path to model
     model = f"babylm_{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}_seed{args.random_seed}"
