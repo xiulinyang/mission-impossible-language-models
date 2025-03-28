@@ -20,76 +20,40 @@ from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, PAREN_MODELS, \
     marker_sg_token, marker_pl_token, compute_surprisals
 
 
-MAX_TRAINING_STEPS = 1200
+MAX_TRAINING_STEPS = 3000
 CHECKPOINTS = list(range(100, MAX_TRAINING_STEPS+1, 100))
 
-def compute_anchor_surprisal(model, input_ids, reverse=False):
+
+def compute_circular_surprisal(model, tokens, target_index, device):
     """
-    Computes the surprisal (negative log2 probability) for a target token relative to the <anchor> token.
+    Compute the surprisal for the token at target_index using circular context.
 
-    In non-reverse mode (reverse=False):
-      - Assumes <anchor> is placed before the original first token.
-      - Computes the surprisal for the token immediately following the anchor.
-
-    In reverse mode (reverse=True):
-      - Assumes <anchor> is placed immediately after the original first token.
-      - Computes the surprisal for the <anchor> token itself, using the logits from the token preceding it.
-
-    Parameters:
-      model: The language model.
-      input_ids: A tensor of token ids (shape: [batch_size, sequence_length]).
-      anchor_token_id: The integer id representing the '<anchor>' token.
-      reverse: Boolean flag indicating which configuration to use.
+    Args:
+        model: The language model.
+        tokens: List of token IDs (ints).
+        target_index: Index of the target token.
+        device: Device to run the model on.
 
     Returns:
-      A list of surprisal values (negative log2 probabilities) for the target token in each sequence.
-      If the expected token (or the preceding token in reverse mode) is missing, returns None for that sequence.
+        The surprisal (in bits) for the target token.
     """
-    anchor_token_id = marker_sg_token
+    # Rotate the tokens so that the target token is at the end.
+    rotated_tokens = tokens[target_index + 1:] + tokens[:target_index] + [tokens[target_index]]
+
+    # Convert to tensor and add batch dimension.
+    input_ids = torch.tensor(rotated_tokens).unsqueeze(0).to(device)
+
     with torch.no_grad():
         outputs = model(input_ids)
-        logits = outputs.logits  # shape: [batch_size, seq_len, vocab_size]
-        batch_surprisals = []
+        # For left-to-right models, predictions are for positions 1..L.
+        logits = outputs.logits[0, :-1]
+        # Compute log probabilities.
+        log_probs = torch.log2(torch.nn.functional.softmax(logits, dim=-1))
+        # The target token is the last one in the rotated sequence.
+        target_token = rotated_tokens[-1]
+        surprisal = -log_probs[-1, target_token].item()
+    return surprisal
 
-        for i in range(input_ids.shape[0]):
-            sequence = input_ids[i]
-            # Locate the first occurrence of the <anchor> token in the sequence
-            anchor_positions = (sequence == anchor_token_id).nonzero(as_tuple=False)
-            if anchor_positions.numel() == 0:
-                # No anchor token found in this sequence
-                batch_surprisals.append(None)
-                continue
-
-            anchor_index = anchor_positions[0].item()
-
-            if not reverse:
-                # Non-reverse: <anchor> comes before the original first token.
-                target_index = anchor_index + 1
-                if target_index >= sequence.size(0):
-                    # No token follows the anchor.
-                    batch_surprisals.append(None)
-                    continue
-                target_token_id = sequence[target_index]
-                # Logits at anchor_index predict the token at anchor_index+1.
-                token_logits = logits[i, anchor_index]
-            else:
-                # Reverse: <anchor> is placed right after the original first token.
-                # Here, the target is the <anchor> token at anchor_index,
-                # but its prediction comes from the logits at anchor_index-1.
-                if anchor_index == 0:
-                    # Cannot compute surprisal if <anchor> is the first token.
-                    batch_surprisals.append(None)
-                    continue
-                target_index = anchor_index  # The <anchor> token itself.
-                target_token_id = sequence[target_index]
-                token_logits = logits[i, anchor_index - 1]
-
-            # Convert logits to a probability distribution and then to log probabilities (base 2).
-            log_probs = torch.log2(torch.nn.functional.softmax(token_logits, dim=-1))
-            surprisal = -log_probs[target_token_id].item()
-            batch_surprisals.append(surprisal)
-
-        return batch_surprisals
 
 if __name__ == "__main__":
 
@@ -122,6 +86,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     no_pos_encodings_underscore = "_no_positional_encodings" if args.no_pos_encodings else ""
 
+    if "unwrap" not in args.perturbation_type:
+        raise Exception(
+            "'{args.perturbation_type}' is not a valid hop perturbation")
 
     # Get path to model
     model = f"babylm_{args.perturbation_type}_{args.train_set}_{args.paren_model}{no_pos_encodings_underscore}_seed{args.random_seed}"
@@ -209,49 +176,15 @@ if __name__ == "__main__":
         marker_token_surprisals = []
         nomarker_token_surprisals = []
 
-        # Iterate over data in batches
-        for i in tqdm.tqdm(range(0, len(marker_token_sequences), BATCH_SIZE)):
-
-            # Extract data for batch and pad the sequences
-            marker_batch = marker_token_sequences[i:i+BATCH_SIZE]
-            correct_batch_padded = zip(
-                *zip_longest(*marker_batch, fillvalue=gpt2_hop_tokenizer.eos_token_id))
-            marker_batch_tensors = torch.tensor(
-                list(correct_batch_padded)).to(device)
-
-            # Do the same for wrong batch
-            nomarker_batch = nomarker_token_sequences[i:i+BATCH_SIZE]
-            nomarker_batch_padded = zip(
-                *zip_longest(*nomarker_batch, fillvalue=gpt2_hop_tokenizer.eos_token_id))
-            nomarker_batch_tensors = torch.tensor(
-                list(nomarker_batch_padded)).to(device)
-
-            # Get target indices in a batch
-            targets_batch = target_indices[i:i+BATCH_SIZE]
-
-            # Compute marker/nomarker surprisals for batches
-            # marker_surprisal_sequences = compute_surprisals(
-            #     model, marker_batch_tensors)
-            # nomarker_surprisal_sequences = compute_surprisals(
-            #     model, nomarker_batch_tensors)
-
-            # UPDATED Compute marker/nomarker surprisals for batches
-            if 'acw' in args.perturbation_type:
-                marker_surprisal_sequences = compute_anchor_surprisal(
-                    model, marker_batch_tensors, reverse=True)
-                nomarker_surprisal_sequences = compute_surprisals(
-                    model, nomarker_batch_tensors)
-            else:
-                marker_surprisal_sequences = compute_anchor_surprisal(
-                    model, marker_batch_tensors)
-                nomarker_surprisal_sequences = compute_surprisals(
-                    model, nomarker_batch_tensors)
-
-            # Extract surprisals for target token
-            for marker_seq, nomarker_seq, idx in \
-                    zip(marker_surprisal_sequences, nomarker_surprisal_sequences, targets_batch):
-                marker_token_surprisals.append(marker_seq)
-                nomarker_token_surprisals.append(nomarker_seq[idx])
+        # Compute circular surprisal for each example
+        for marker_seq, nomarker_seq, target_idx in tqdm.tqdm(zip(marker_token_sequences,
+                                                                  nomarker_token_sequences,
+                                                                  target_indices),
+                                                              total=len(marker_token_sequences)):
+            marker_surp = compute_circular_surprisal(model, marker_seq, target_idx, device)
+            nomarker_surp = compute_circular_surprisal(model, nomarker_seq, target_idx, device)
+            marker_token_surprisals.append(marker_surp)
+            nomarker_token_surprisals.append(nomarker_surp)
 
         # Add surprisals to df
         ckpt_df = pd.DataFrame(
