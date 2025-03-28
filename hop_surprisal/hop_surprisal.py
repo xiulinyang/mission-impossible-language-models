@@ -20,7 +20,7 @@ from utils import CHECKPOINT_READ_PATH, PERTURBATIONS, PAREN_MODELS, \
     marker_sg_token, marker_pl_token, compute_surprisals
 
 
-MAX_TRAINING_STEPS = 1200
+MAX_TRAINING_STEPS = 900
 CHECKPOINTS = list(range(100, MAX_TRAINING_STEPS+1, 100))
 
 def compute_anchor_surprisal(model, input_ids, reverse=False):
